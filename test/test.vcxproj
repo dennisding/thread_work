@@ -116,9 +116,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="test.cpp" />
+    <ClCompile Include="thread_executor.cpp" />
     <ClCompile Include="thread_mgr.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="thread.hpp" />
+    <ClInclude Include="thread_context.hpp" />
+    <ClInclude Include="thread_executor.hpp" />
     <ClInclude Include="thread_mgr.hpp" />
     <ClInclude Include="thread_task.hpp" />
   </ItemGroup>

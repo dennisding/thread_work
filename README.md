@@ -37,7 +37,7 @@ thread_mgr::sync<thread::logic>(
 	[]() {
 		std::cout << "task 1" << std::endl;
 	},
-	[](thrad_context &context) {
+	[](thread_context &context) {
 		std::cout << "task 2" << std::endl;
 
 		for (int i = 0; i < 10; ++i ) {

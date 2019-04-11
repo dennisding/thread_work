@@ -21,12 +21,24 @@
     <ClCompile Include="thread_mgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="thread_executor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="thread_mgr.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="thread_task.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="thread_context.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="thread_executor.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="thread.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
