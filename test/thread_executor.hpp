@@ -15,6 +15,13 @@ inline bool need_switch(const type &v)
 
 bool need_switch(thread_context &task);
 
+template <typename type>
+inline void set_task(const type &v, package_task *task)
+{
+}
+
+void set_task(thread_context &context, package_task *task);
+
 //template <typename last, typename current>
 //struct get_working_type
 //{
@@ -84,7 +91,6 @@ struct  executor_selector
 	static bool executor(tuple &t, void **in, package_task *task)
 	{
 		// execute current task in different thread
-//		using next_type = decltype(thread::get_working_thread<working>(std::get<size - index + 1>(t)));
 		*in = executor_selector<thread_mgr, working, tuple, size, index, current, current>::executor;
 
 		// need switch
@@ -129,6 +135,8 @@ struct executor_selector<thread_mgr, working, tuple, size, index, current, curre
 		*in = executor_selector<thread_mgr, working, tuple, size, index - 1, real_current, next_type>::executor;
 
 		std::get<size - index>(t)();
-		return true;
+
+		set_task(std::get<size -index>(t), task);
+		return !need_switch(std::get<size - index>(t));
 	}
 };

@@ -9,57 +9,7 @@
 #include <memory>
 #include <functional>
 
-
-//using thread_task = std::function<void()>;
-//
-//template <typename ...types>
-//struct task_list
-//{
-//
-//};
-//
-//template <typename head>
-//struct task_list<head>
-//{
-//	using list = std::list<std::function<void()>>;
-//
-//	static thread_task get_task()
-//	{
-//		auto &tasks = get_task_list();
-//		if (tasks.empty()) {
-//			return nullptr;
-//		}
-//
-//		auto task = std::move(*(tasks.begin()));
-//		tasks.pop_front();
-//		return task;
-//	}
-//
-//	static void add_task(thread_task &&task)
-//	{
-//		get_task_list().emplace_back(task);
-//	}
-//
-//	static list &get_task_list()
-//	{
-//		static list ins_;
-//		return ins_;
-//	}
-//};
-//
-//template <typename head, typename ...tails>
-//struct task_list<head, tails...>
-//{
-//	static thread_task get_task()
-//	{
-//		auto task = task_list<head>::get_task();
-//		if (task) {
-//			return std::move(task);
-//		}
-//
-//		return task_list<tails...>::get_task();
-//	}
-//};
+class thread_mgr;
 
 class package_task : public std::enable_shared_from_this<package_task>
 {
@@ -67,6 +17,7 @@ public:
 	virtual ~package_task() {}
 	virtual void operator()() {}
 	virtual bool need_switch() { return false; }
+	virtual void dispatch_self() {}
 };
 
 using package_task_ptr = std::shared_ptr<package_task>;
@@ -107,47 +58,11 @@ private:
 	std::mutex mutex_;
 };
 
-//using package_task_ptr = std::shared_ptr<package_task>;
-//
-//template <size_t N, size_t index, typename task_vector, typename last, typename current>
-//struct task_selector_imp
-//{
-//	static bool selector(task_vector &v, void *&selector)
-//	{
-//		using next = decltype(std::get<N - index + 1>(v));
-//		selector = task_selector_imp<N, index - 1, task_vector, current, next>::selector;
-//		std::get<N - index>(v)();
-//
-//		return true;
-//	}
-//};
-//
-//template <size_t N, size_t index, typename task_vector, typename type>
-//struct task_selector_imp<N, index, task_vector, type, type>
-//{
-//	static bool selector(task_vector &v, void *&selector)
-//	{
-//
-//	}
-//};
-//
-//template <size_t N, typename task_vector, typename last, typename current>
-//struct task_selector_imp<N, 1, task_vector, last, current>
-//{
-//	static bool selector(task_vector &v, void *&selector)
-//	{
-//		selector = nullptr;
-//		std::get<N - 1>(v)();
-//		return false;
-//	}
-//};
-
-class thread_mgr;
-
 template <typename type, typename ...task_types>
 class sync_task : public package_task
 {
-	using task_tuple = std::tuple<task_types...>;
+	//using task_tuple = std::tuple<task_types...>;
+	using task_tuple = std::tuple<typename store_type<thread_context, task_types>::type...>;
 	using executor = bool(*)(task_tuple &, void **, package_task *);
 public:
 	sync_task(task_types &&...tasks) : tasks_(std::move(tasks)...)
@@ -164,8 +79,14 @@ public:
 		}
 	}
 
+	virtual void dispatch_self()
+	{
+		thread_mgr::instance().dispatch<type>(this);
+	}
+
 private:
 	//task_selector selector_;
 	executor executor_;
 	task_tuple tasks_;
 };
+

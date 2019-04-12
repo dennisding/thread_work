@@ -11,12 +11,12 @@ class thread_context
 {
 	using task = std::function<void(thread_context &)>;
 public:
-	thread_context(const thread_context &&c) : task_(std::move(c.task_)), 
+	thread_context(thread_context &c) : task_(std::move(c.task_)), package_task_(nullptr),
 		executed_(false), counter_(0)
 	{
 	}
 
-	thread_context(task t) : task_(std::move(t)), executed_(false), counter_(0)
+	thread_context(task t) : task_(std::move(t)), package_task_(nullptr), executed_(false), counter_(0)
 	{
 	}
 
@@ -28,7 +28,7 @@ public:
 		[this]() {
 			// we done!
 			if ((counter_.fetch_sub(1) == 1) && executed_.load()) {
-
+				done();
 			}
 		});
 	}
@@ -37,12 +37,12 @@ public:
 	{
 		if (!executed_.load()) {
 			task_(*this);
-//			executed_ = true;
 			executed_.store(true);
 		}
 		
 		// we done!
 		if (counter_.load() == 0) {
+			done();
 		}
 	}
 
@@ -51,9 +51,21 @@ public:
 		return counter_.load() != 0;
 	}
 
+	inline void done()
+	{
+//		thread_mgr::instance().dispatch<thread::any>(&*package_task_);
+		package_task_->dispatch_self();
+		package_task_ = nullptr;
+	}
+
+	void set_package_task(package_task *task)
+	{
+		package_task_ = task->shared_from_this();
+	}
+
 private:
 	task task_;
-//	bool executed_;
+	package_task_ptr package_task_;
 	std::atomic<bool> executed_;
 	std::atomic<int> counter_;
 };

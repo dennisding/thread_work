@@ -24,19 +24,11 @@ public:
 	template <typename type>
 	void tick()
 	{
-		//auto task = task_list<type>::get_task();
-		//while (task) {
-		//	task();
-		//	task = task_list<type>::get_task();
-		//}
 	}
 
 	template <typename type, typename ...task_types>
 	void sync(task_types &&... tasks)
 	{
-	//	sync_task<type, task_types...> t(std::move(tasks)...);
-		//auto task  = std::make_shared<sync_task<task_types...>>(tasks...);
-
 		auto task = std::make_shared< sync_task<type, task_types...> >(std::move(tasks)...);
 
 		task_list<type>::instance().add_task(task);
@@ -70,9 +62,9 @@ private:
 			if (task) {
 				(*task)();
 			}
-			else {
+//			else {
 				std::this_thread::yield();
-			}
+//			}
 		}
 	}
 
