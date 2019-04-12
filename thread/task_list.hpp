@@ -24,12 +24,12 @@ using task_ptr = std::shared_ptr<task>;
 template <typename type, typename ...task_types>
 class package_task : public task
 {
-	//using task_tuple = std::tuple<task_types...>;
-	using task_tuple = std::tuple<typename select_context<task_types>::type...>;
+	using task_tuple = std::tuple<typename select_context<type, task_types>::type...>;
 	using executor_type = decltype(get_executor<task_tuple, task, type>());
 public:
-	package_task(task_types ...tasks) : tasks_(std::move(tasks)...)
+	package_task(const task_types &...tasks) : tasks_(std::move(tasks)...)
 	{
+		executor_ = get_executor<task_tuple, task, type>();
 	}
 
 	virtual void operator()()
@@ -63,26 +63,21 @@ public:
 
 	void execute()
 	{
-		bool done = false;
 		task_ptr task;
-
-		while (!done) {
+		for (;;) {
 			// get the task
 			{
 				std::lock_guard<std::mutex> lock(mutex_);
 				if (tasks_.empty()) {
-					done = true;
+					break;
 				}
 				else {
 					task = *tasks_.begin();
 					tasks_.pop_front();
 				}
 			}
-
 			// execute the task
-			if (task) {
-				(*task)();
-			}
+			(*task)();
 		}
 	}
 

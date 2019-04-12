@@ -6,6 +6,7 @@
 int main(int argc, const char **argv)
 {
 	thread::init();
+	thread::setup();
 
 	thread::sync<thread::any>(
 	[]() {
@@ -18,4 +19,8 @@ int main(int argc, const char **argv)
 		std::cout << "task 3" << std::endl;
 	}
 	);
+
+	while (true) {
+		std::this_thread::yield();
+	}
 }

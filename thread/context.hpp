@@ -33,11 +33,13 @@ private:
 	std::atomic<bool> executed_;
 };
 
-template <typename task_type, int has_context>
+template <typename working, typename task_type, int has_context>
 class context_imp
 {
 public:
-	context_imp(task_type &task) : task_(std::move(task))
+	using type = working;
+
+	context_imp(const task_type &task) : task_(std::move(task))
 	{
 
 	}
@@ -51,11 +53,13 @@ private:
 	task_type task_;
 };
 
-template <typename task_type>
-class context_imp<task_type, 1>
+template <typename working, typename task_type>
+class context_imp<working, task_type, 1>
 {
 public:
-	context_imp(task_type &task) : task_(std::move(task))
+	using type = working;
+
+	context_imp(const task_type &task) : task_(std::move(task))
 	{
 	}
 
@@ -69,11 +73,11 @@ private:
 	context context_;
 };
 
-template <typename raw_type>
+template <typename working, typename raw_type>
 struct select_context
 {
 	using context_type = std::function<void(context &)>;
-	using type = context_imp<raw_type, std::is_convertible<raw_type, context_type>::value>;
+	using type = context_imp<working, raw_type, std::is_convertible<raw_type, context_type>::value>;
 };
 
 THREAD_NS_END
