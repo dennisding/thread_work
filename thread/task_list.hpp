@@ -12,7 +12,7 @@
 
 THREAD_NS_BEGIN
 
-class task
+class task : public std::enable_shared_from_this<task>
 {
 public:
 	virtual ~task() {}
@@ -24,10 +24,15 @@ using task_ptr = std::shared_ptr<task>;
 template <typename type, typename ...task_types>
 class package_task : public task
 {
-	using task_tuple = std::tuple<typename select_context<type, task_types>::type...>;
+	using task_tuple = std::tuple<typename select_context<typename get_working_type<type, task_types>::type, task_types>::type...>;
 	using executor_type = decltype(get_executor<task_tuple, task, type>());
 public:
-	package_task(const task_types &...tasks) : tasks_(std::move(tasks)...)
+	package_task(task_types &...tasks) : tasks_(tasks...)
+	{
+		executor_ = get_executor<task_tuple, task, type>();
+	}
+
+	package_task(task_types &&...tasks) : tasks_(std::forward<task_types>(tasks)...)
 	{
 		executor_ = get_executor<task_tuple, task, type>();
 	}
@@ -82,13 +87,23 @@ public:
 	}
 
 	template <typename ...task_types>
-	void add_task(task_types &...tasks)
+	void add_task(task_types &&...tasks)
 	{
-		using task_type = package_task<type, task_types...>;
-		auto task = std::make_shared<task_type>(tasks...);
+		using task_type = package_task<type, typename std::remove_reference<task_types>::type...>;
+		//auto task = std::make_shared<task_type>(std::move(tasks)...);
 
+		//dispatch_task(std::move(task));
+
+		dispatch(std::make_shared<task_type>(std::forward<task_types>(tasks)...));
+
+		//std::lock_guard<std::mutex> lock(mutex_);
+		//tasks_.push_back(task);
+	}
+
+	inline void dispatch(task_ptr &&task)
+	{
 		std::lock_guard<std::mutex> lock(mutex_);
-		tasks_.push_back(task);
+		tasks_.push_back(std::forward<task_ptr>(task));
 	}
 
 private:

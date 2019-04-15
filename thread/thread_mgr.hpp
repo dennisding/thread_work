@@ -26,9 +26,15 @@ public:
 	}
 
 	template <typename type, typename ...task_types>
-	void sync(task_types ...tasks)
+	inline void sync(task_types &&...tasks)
 	{
-		task_list<type>::instance().add_task(tasks...);
+		task_list<type>::instance().add_task(std::forward<task_types>(tasks)...);
+	}
+
+	template <typename type>
+	inline void dispatch(std::shared_ptr<task> &&t)
+	{
+		task_list<type>::instance().dispatch(std::forward<std::shared_ptr<task>>(t));
 	}
 
 	template <typename ...types>
@@ -64,9 +70,15 @@ private:
 };
 
 template <typename type, typename ...task_types>
-inline void sync_imp(task_types &...tasks)
+inline void sync_imp(task_types &&...tasks)
 {
-	thread_mgr::instance().sync<type>(std::move(tasks)...);
+	thread_mgr::instance().sync<type>(std::forward<task_types>(tasks)...);
+}
+
+template <typename type>
+inline void dispatch(std::shared_ptr<task> &&t)
+{
+	thread_mgr::instance().dispatch<type>(std::forward<std::shared_ptr<task>>(t));
 }
 
 THREAD_NS_END

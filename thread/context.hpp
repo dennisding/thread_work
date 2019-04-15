@@ -8,10 +8,6 @@
 
 THREAD_NS_BEGIN
 
-// forward definition
-template <typename type, typename ...task_types>
-void sync_imp(task_types &...tasks);
-
 class context
 {
 public:
@@ -39,9 +35,12 @@ class context_imp
 public:
 	using type = working;
 
-	context_imp(const task_type &task) : task_(std::move(task))
+	context_imp(task_type &task) : task_(task)
 	{
+	}
 
+	context_imp(task_type &&task) : task_(std::move(task))
+	{
 	}
 
 	inline void operator()() 
@@ -59,7 +58,11 @@ class context_imp<working, task_type, 1>
 public:
 	using type = working;
 
-	context_imp(const task_type &task) : task_(std::move(task))
+	context_imp(task_type &task) : task_(task)
+	{
+	}
+
+	context_imp(task_type &&task) : task_(std::move(task))
 	{
 	}
 
@@ -73,11 +76,17 @@ private:
 	context context_;
 };
 
+template <typename type>
+struct has_context : public std::integral_constant<int,
+	std::is_convertible<type, std::function<void(context &)>>::value>
+{
+
+};
+
 template <typename working, typename raw_type>
 struct select_context
 {
-	using context_type = std::function<void(context &)>;
-	using type = context_imp<working, raw_type, std::is_convertible<raw_type, context_type>::value>;
+	using type = typename context_imp<working, raw_type, has_context<raw_type>::value>;
 };
 
 THREAD_NS_END
