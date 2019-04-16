@@ -3,6 +3,7 @@
 #include "config.hpp"
 #include "context.hpp"
 #include "executor.hpp"
+#include "thread_task.hpp"
 
 #include <list>
 #include <tuple>
@@ -11,15 +12,6 @@
 #include <memory>
 
 THREAD_NS_BEGIN
-
-class task : public std::enable_shared_from_this<task>
-{
-public:
-	virtual ~task() {}
-	virtual void operator()() = 0;
-};
-
-using task_ptr = std::shared_ptr<task>;
 
 template <typename type, typename ...task_types>
 class package_task : public task
@@ -42,6 +34,11 @@ public:
 		// execute task
 		while (!(executor_->execute(tasks_, executor_, this))) {
 		}
+	}
+
+	virtual void dispatch_self()
+	{
+		dispatch<type>(this->shared_from_this());
 	}
 
 private:
@@ -90,14 +87,8 @@ public:
 	void add_task(task_types &&...tasks)
 	{
 		using task_type = package_task<type, typename std::remove_reference<task_types>::type...>;
-		//auto task = std::make_shared<task_type>(std::move(tasks)...);
-
-		//dispatch_task(std::move(task));
 
 		dispatch(std::make_shared<task_type>(std::forward<task_types>(tasks)...));
-
-		//std::lock_guard<std::mutex> lock(mutex_);
-		//tasks_.push_back(task);
 	}
 
 	inline void dispatch(task_ptr &&task)

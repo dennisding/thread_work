@@ -24,5 +24,8 @@ void sync_imp(task_types &&...tasks);
 template <typename type>
 void dispatch(std::shared_ptr<task> &&task);
 
+template <typename type>
+void dispatch(task *task);
+
 
 THREAD_NS_END

@@ -81,4 +81,10 @@ inline void dispatch(std::shared_ptr<task> &&t)
 	thread_mgr::instance().dispatch<type>(std::forward<std::shared_ptr<task>>(t));
 }
 
+template <typename type>
+inline void dispatch(task *task)
+{
+	thread_mgr::instance().dispatch<type>(task->shared_from_this());
+}
+
 THREAD_NS_END

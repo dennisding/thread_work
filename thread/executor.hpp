@@ -1,7 +1,6 @@
 #pragma once
 
 #include "config.hpp"
-#include "executor.hpp"
 
 #include <tuple>
 
@@ -105,9 +104,7 @@ public:
 		e = &executor_imp<tuple, task_type, size, index - 1, real_current::type, next::type>::instance();
 
 		// execute the task
-		std::get<size - index>(t)();
-
-		return false;
+		return !std::get<size - index>(t)(task);
 	}
 };
 
@@ -126,9 +123,6 @@ public:
 	{
 		e = &executor_imp<tuple, task_type, size, 1, current, current>::instance();
 		dispatch<current>(task->shared_from_this());
-		// final task in different working thread
-		//std::get<size - 1>(t)();
-		//e = nullptr;
 		return true;
 	}
 };
@@ -147,7 +141,7 @@ public:
 	virtual bool execute(tuple &t, executor<tuple, task> *&e, task *task)
 	{
 		// final task in same working thread
-		std::get<size - 1>(t)();
+		std::get<size - 1>(t)(task);
 		e = nullptr;
 		return true;
 	}

@@ -1,8 +1,10 @@
 #pragma once
 
 #include "config.hpp"
+#include "thread_task.hpp"
 
 #include <atomic>
+#include <iostream>
 #include <functional>
 #include <type_traits>
 
@@ -11,22 +13,51 @@ THREAD_NS_BEGIN
 class context
 {
 public:
-	context() : counter_(0), executed_(false)
+	inline context() : has_sub_task_(false), counter_(1)
 	{
 	}
 
 	template <typename type, typename ...task_types>
-	void sync(task_types &...tasks)
+	void sync(task_types &&...tasks)
 	{
 		++counter_;
-		sync_imp<type>(tasks..., [this]() { --counter_; });
+		has_sub_task_ = true;
 
-		executed_.store(true);
+		sync_imp<type>(std::forward<task_types>(tasks)...,
+			[this]() {
+				finish_one_task();
+		});
+	}
+
+	inline void executed()
+	{
+		finish_one_task();
+	}
+
+	void set_task(task_ptr &&task)
+	{
+		task_ = task;
+	}
+
+	inline bool has_sub_task()
+	{
+		return has_sub_task_;
 	}
 
 private:
+	inline void finish_one_task()
+	{
+		if (counter_.fetch_sub(1) == 1) {
+			// all work done , dispatch to working thread
+			std::cout << "all work done!!!!" << std::endl;
+			task_->dispatch_self();
+		}
+	}
+
+private:
+	task_ptr task_;
+	bool has_sub_task_;
 	std::atomic<int> counter_;
-	std::atomic<bool> executed_;
 };
 
 template <typename working, typename task_type, int has_context>
@@ -43,9 +74,10 @@ public:
 	{
 	}
 
-	inline void operator()() 
+	inline bool operator()(task *t) 
 	{
 		task_();
+		return true;
 	}
 
 private:
@@ -66,9 +98,15 @@ public:
 	{
 	}
 
-	inline void operator()()
+	inline bool operator()(task *t)
 	{
+		context_.set_task(t->shared_from_this());
+
 		task_(context_);
+
+		context_.executed();
+
+		return !context_.has_sub_task();
 	}
 
 private:
