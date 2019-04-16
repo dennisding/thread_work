@@ -1,7 +1,6 @@
 #pragma once
 
 #include "config.hpp"
-#include "thread_task.hpp"
 
 #include <atomic>
 #include <iostream>
@@ -12,8 +11,9 @@ THREAD_NS_BEGIN
 
 class context
 {
+	using callback_type = std::function<void()>;
 public:
-	inline context() : has_sub_task_(false), counter_(1)
+	inline context() : has_sub_task_(false), counter_(2), on_done_(nullptr)
 	{
 	}
 
@@ -25,13 +25,13 @@ public:
 
 		sync_imp<type>(std::forward<task_types>(tasks)...,
 			[this]() {
-				finish_one_task();
+				finish_one_task(1);
 		});
 	}
 
 	inline void executed()
 	{
-		finish_one_task();
+		finish_one_task(2);
 	}
 
 	void set_task(task_ptr &&task)
@@ -44,14 +44,22 @@ public:
 		return has_sub_task_;
 	}
 
-private:
-	inline void finish_one_task()
+	inline void on_done(callback_type &&callback)
 	{
-		if (counter_.fetch_sub(1) == 1) {
+		on_done_ = callback;
+	}
+
+private:
+	inline void finish_one_task(int count)
+	{
+		if (counter_.fetch_sub(count) == 1) {
 			// all work done , dispatch to working thread
-			std::cout << "all work done!!!!" << std::endl;
 			task_->dispatch_self();
 			task_ = nullptr;
+			if (on_done_) {
+				on_done_();
+				on_done_ = nullptr;
+			}
 		}
 	}
 
@@ -59,6 +67,7 @@ private:
 	task_ptr task_;
 	bool has_sub_task_;
 	std::atomic<int> counter_;
+	callback_type on_done_;
 };
 
 template <typename working, typename task_type, int has_context>

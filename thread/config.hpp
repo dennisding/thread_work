@@ -15,8 +15,16 @@ struct script {};
 struct main {};
 struct any {};
 
-// forward definition
-class task;
+class task : public std::enable_shared_from_this<task>
+{
+public:
+	virtual ~task() {}
+	virtual void operator()() = 0;
+	virtual void dispatch_self() = 0;
+};
+
+using task_ptr = std::shared_ptr<task>;
+
 
 template <typename type, typename ...task_types>
 void sync_imp(task_types &&...tasks);

@@ -163,7 +163,6 @@ public:
 		std::get<size - 1>(t)(task);
 		// set a null executor
 		e = &executor<tuple, task_type>::instance();
-//		e = nullptr;
 		return true;
 	}
 };

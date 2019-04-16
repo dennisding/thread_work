@@ -11,6 +11,8 @@ void do_something(thread::context &context)
 	});
 }
 
+int g_count;
+
 int main(int argc, const char **argv)
 {
 	thread::init();
@@ -37,11 +39,21 @@ int main(int argc, const char **argv)
 	}),
 	[](thread::context &context) {
 		std::cout << "task 3" << std::endl;
-		for (int i = 0; i < 10; ++i) {
+		using counter_type = std::atomic<int>;
+
+		auto counter = std::make_shared<counter_type>(0);
+
+		context.on_done([=]() {
+			std::cout << "on done!!!" << counter->load() << std::endl;
+		});
+
+		for (int i = 0; i < 102400; ++i) {
 			context.sync<thread::any>(
-				[i]() {
-					std::cout << i;
-					std::this_thread::yield();
+				[=](thread::context &context) {
+					(*counter)++;
+//					++g_count;
+//					std::cout << i;
+//					std::this_thread::yield();
 				}
 			);
 		}
@@ -50,6 +62,6 @@ int main(int argc, const char **argv)
 	);
 
 	while (true) {
-		std::this_thread::yield();
+		std::this_thread::sleep_for(std::chrono::microseconds(1));
 	}
 }

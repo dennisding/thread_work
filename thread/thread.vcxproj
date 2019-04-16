@@ -121,7 +121,6 @@
     <ClInclude Include="task_list.hpp" />
     <ClInclude Include="thread.hpp" />
     <ClInclude Include="thread_mgr.hpp" />
-    <ClInclude Include="thread_task.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="test.cpp" />

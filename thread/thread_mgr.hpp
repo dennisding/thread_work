@@ -44,6 +44,14 @@ public:
 		threads_.push_back(t);
 	}
 
+	template <typename ...types>
+	void add_worker(int num)
+	{
+		for (int i = 0; i < num; ++i) {
+			add_worker<types...>();
+		}
+	}
+
 	void quit()
 	{
 		quit_ = true;
@@ -61,6 +69,7 @@ private:
 		while (!mgr->is_quit()) {
 			task_list<types...>::instance().execute();
 			std::this_thread::yield();
+//			std::this_thread::sleep_for(std::chrono::microseconds(1));
 		}
 	}
 

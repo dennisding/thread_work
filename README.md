@@ -52,3 +52,6 @@ thread::sync<thread::logic>(
 )
 
 ```
+
+example:
+1. task 之间数据共享
