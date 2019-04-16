@@ -5,12 +5,12 @@ something about thread
 useage and sync task
 
 ```c++
-thread_mgr::init();
+thread::init();
 
 // add worker threads
-thread_mgr::add_worker<thread::render>();
+thread::add_worker<thread::render>();
 
-thread_mgr::instance().sync<thread::logic>(
+thread.sync<thread::logic>(
 	[]() {
 		std::cout << "task 1" << std::endl;
 	},
@@ -26,18 +26,18 @@ thread_mgr::instance().sync<thread::logic>(
 	}
 )
 
-thread_mgr::tick<thread::logic>();
+thread::tick<thread::logic>();
 ```
 
 
 mixed sync and async
 ```c++
 
-thread_mgr::sync<thread::logic>(
+thread::sync<thread::logic>(
 	[]() {
 		std::cout << "task 1" << std::endl;
 	},
-	[](thread_context &context) {
+	[](thread::context &context) {
 		std::cout << "task 2" << std::endl;
 
 		for (int i = 0; i < 10; ++i ) {

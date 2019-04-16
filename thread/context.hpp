@@ -51,6 +51,7 @@ private:
 			// all work done , dispatch to working thread
 			std::cout << "all work done!!!!" << std::endl;
 			task_->dispatch_self();
+			task_ = nullptr;
 		}
 	}
 

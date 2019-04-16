@@ -8,20 +8,12 @@ THREAD_NS_BEGIN
 
 class context;
 
-template <typename type, typename task_type>
+template <typename type, typename task_type, int has_context>
 class work_at_imp
 {
 	using store_type = typename std::remove_reference<task_type>::type;
 public:
-	//work_at_imp(task_type &task_type) : task_(task_type)
-	//{
-	//}
-
-	//work_at_imp(task_type &&task) : task_(std::move(task))
-	//{
-	//}
-
-	work_at_imp(task_type &&task) : task_(std::forward<task_type>(task))
+	inline work_at_imp(task_type &&task) : task_(std::forward<task_type>(task))
 	{
 	}
 
@@ -36,9 +28,30 @@ private:
 };
 
 template <typename type, typename task_type>
-work_at_imp<type, task_type> work_at(task_type &&task)
+class work_at_imp<type, task_type, 1>
 {
-	return work_at_imp<type, task_type>(std::forward<task_type>(task));
+	using store_type = typename std::remove_reference<task_type>::type;
+public:
+	inline work_at_imp(task_type &&task) : task_(std::forward<task_type>(task))
+	{
+	}
+
+	inline void operator()(context &c)
+	{
+		task_(c);
+	}
+
+
+private:
+	store_type task_;
+};
+
+template <typename type, typename task_type>
+work_at_imp<type, task_type, has_context<task_type>::value> work_at(task_type &&task)
+{
+	using work_at_type = work_at_imp<type, task_type, has_context<task_type>::value>;
+//	return work_at_imp<type, task_type, has_context<task_type>::value>(std::forward<task_type>(task));
+	return work_at_type(std::forward<task_type>(task));
 }
 
 template <typename working_type, typename task_type>
@@ -48,8 +61,8 @@ public:
 	using type = working_type;
 };
 
-template <typename working_type, typename work_at_type, typename task_type>
-struct get_working_type<working_type, work_at_imp<work_at_type, task_type>>
+template <typename working_type, typename work_at_type, typename task_type, int has_context>
+struct get_working_type<working_type, work_at_imp<work_at_type, task_type, has_context>>
 {
 public:
 	using type = work_at_type;
@@ -60,6 +73,12 @@ template <typename tuple, typename task>
 class executor
 {
 public:
+	inline executor &instance()
+	{
+		static executor ins_;
+		return ins_;
+	}
+
 	virtual bool execute(tuple &t, executor *&e, task *task)
 	{
 		return true;
@@ -127,9 +146,9 @@ public:
 	}
 };
 
-template <typename tuple, typename task, int size, typename current>
-class executor_imp<tuple, task, size, 1, current, current>
-	: public executor<tuple, task>
+template <typename tuple, typename task_type, int size, typename current>
+class executor_imp<tuple, task_type, size, 1, current, current>
+	: public executor<tuple, task_type>
 {
 public:
 	static executor_imp &instance()
@@ -138,11 +157,13 @@ public:
 		return ins_;
 	}
 
-	virtual bool execute(tuple &t, executor<tuple, task> *&e, task *task)
+	virtual bool execute(tuple &t, executor<tuple, task_type> *&e, task_type *task)
 	{
 		// final task in same working thread
 		std::get<size - 1>(t)(task);
-		e = nullptr;
+		// set a null executor
+		e = &executor<tuple, task_type>::instance();
+//		e = nullptr;
 		return true;
 	}
 };

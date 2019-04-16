@@ -3,9 +3,12 @@
 
 #include <iostream>
 
-void do_something()
+void do_something(thread::context &context)
 {
 	std::cout << "do something" << std::endl;
+	context.sync<thread::any>([]() {
+		std::cout << "do something in any" << std::endl;
+	});
 }
 
 int main(int argc, const char **argv)
@@ -17,8 +20,20 @@ int main(int argc, const char **argv)
 	[]() {
 		std::cout << "task 1" << std::endl;
 	},
-	thread::work_at<thread::render>([]() {
+	thread::work_at<thread::render>([](thread::context &context) {
 		std::cout << "task 2" << std::endl;
+
+		context.sync<thread::render>([]() {
+			std::cout << "work at render" << std::endl;
+		});
+
+		context.sync<thread::render>([]() {
+			std::cout << "work at render 2" << std::endl;
+		});
+
+		context.sync<thread::render>([]() {
+			std::cout << "work at render 3" << std::endl;
+		});
 	}),
 	[](thread::context &context) {
 		std::cout << "task 3" << std::endl;
@@ -26,6 +41,7 @@ int main(int argc, const char **argv)
 			context.sync<thread::any>(
 				[i]() {
 					std::cout << i;
+					std::this_thread::yield();
 				}
 			);
 		}
