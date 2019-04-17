@@ -23,15 +23,26 @@ int main(int argc, const char **argv)
 		auto counter = std::make_shared<std::atomic<int>>();
 
 		context.on_done([counter]() {
+			std::cout << std::endl;
 			std::cout << "on done!!!" << counter->load(std::memory_order_acquire) << std::endl;
 		});
 
- 		for (int i = 0; i < 10000000; ++i) {
+ 		for (int i = 0; i < 10; ++i) {
 			context.sync<thread::any>([i, counter]() {
+//				counter->fetch_add(1, std::memory_order_release);
 				counter->fetch_add(1, std::memory_order_release);
+				std::cout << i;
 			});
 		}
-	}
+	},
+	thread::work_at<thread::script>([](thread::context &context) {
+		std::cout << "task 2" << std::endl;
+		for (int i = 1; i < 8; ++i) {
+			context.sync<thread::render>([i]() {
+				std::cout << i;
+			});
+		}
+	})
 	);
 
 	while (true) {
