@@ -15,22 +15,26 @@ struct script {};
 struct main {};
 struct any {};
 
-class task : public std::enable_shared_from_this<task>
+class task
 {
 public:
+	task() : next_(nullptr) {}
 	virtual ~task() {}
 	virtual void operator()() = 0;
 	virtual void dispatch_self() = 0;
+
+	task *next_;
 };
 
-using task_ptr = std::shared_ptr<task>;
+using task_ptr = task * ;
+//using task_ptr = std::shared_ptr<task>;
 
 
 template <typename type, typename ...task_types>
 void sync_imp(task_types &&...tasks);
 
-template <typename type>
-void dispatch(std::shared_ptr<task> &&task);
+//template <typename type>
+//void dispatch(std::shared_ptr<task> &&task);
 
 template <typename type>
 void dispatch(task *task);

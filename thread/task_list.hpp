@@ -37,7 +37,7 @@ public:
 
 	virtual void dispatch_self()
 	{
-		dispatch<type>(this->shared_from_this());
+		dispatch<type>(this);
 	}
 
 private:
@@ -50,12 +50,50 @@ class task_list
 {
 };
 
+class task_list_imp
+{
+public:
+	inline task_list_imp() : head_(nullptr)
+	{
+		tail_ = &head_;
+	}
+
+	inline void push_back(task *t)
+	{
+		(*tail_) = t;
+		tail_ = &t->next_;
+	}
+
+	inline task *pop_front()
+	{
+		if (head_ == nullptr) {
+			return nullptr;
+		}
+
+		task *result = head_;
+		head_ = head_->next_;
+		if (!head_) {
+			tail_ = &head_;
+		}
+
+		return result;
+	}
+
+private:
+	task *head_;
+	task **tail_;
+};
+
 template <typename type>
 class task_list<type>
 {
 	using task_list_type = std::list<task_ptr>;
 
 public:
+	task_list() : tasks_(new task_list_imp)
+	{
+	}
+
 	inline static task_list &instance()
 	{
 		static task_list ins_;
@@ -64,41 +102,60 @@ public:
 
 	void execute()
 	{
-		task_ptr task;
 		for (;;) {
-			// get the task
-			{
-				std::lock_guard<std::mutex> lock(mutex_);
-				if (tasks_.empty()) {
-					break;
-				}
-				else {
-					task = *tasks_.begin();
-					tasks_.pop_front();
-				}
+			task *work = pop_front();
+			if (work) {
+				(*work)();
 			}
-			// execute the task
-			(*task)();
+			else {
+				break;
+			}
 		}
 	}
 
 	template <typename ...task_types>
-	void add_task(task_types &&...tasks)
+	inline void add_task(task_types &&...tasks)
 	{
 		using task_type = package_task<type, typename std::remove_reference<task_types>::type...>;
 
-		dispatch(std::make_shared<task_type>(std::forward<task_types>(tasks)...));
+		push_back(new task_type(std::forward<task_types>(tasks)...));
 	}
 
-	inline void dispatch(task_ptr &&task)
+	inline void dispatch(task *t)
 	{
-		std::lock_guard<std::mutex> lock(mutex_);
-		tasks_.push_back(std::forward<task_ptr>(task));
+		push_back(t);
 	}
 
 private:
-	std::mutex mutex_;
-	task_list_type tasks_;
+	inline void push_back(task *t)
+	{
+		// get the list implement
+		task_list_imp *list = nullptr;
+		do {
+			list = tasks_.exchange(nullptr, std::memory_order_acquire);
+		} while (!list);
+
+		list->push_back(t);
+
+		tasks_.exchange(list, std::memory_order_release);
+	}
+
+	inline task *pop_front()
+	{
+		// get the list implement
+		task_list_imp *list = nullptr;
+		do {
+			list = tasks_.exchange(nullptr, std::memory_order_acquire);
+		} while (!list);
+
+		auto t = list->pop_front();
+
+		tasks_.exchange(list, std::memory_order_release);
+
+		return t;
+	}
+private:
+	std::atomic<task_list_imp *> tasks_;
 };
 
 template <typename head, typename ...tails>

@@ -20,7 +20,8 @@ public:
 	template <typename type, typename ...task_types>
 	void sync(task_types &&...tasks)
 	{
-		++counter_;
+//		++counter_;
+		counter_.fetch_add(1, std::memory_order_release);
 		has_sub_task_ = true;
 
 		sync_imp<type>(std::forward<task_types>(tasks)...,
@@ -34,7 +35,7 @@ public:
 		finish_one_task(2);
 	}
 
-	void set_task(task_ptr &&task)
+	void set_task(task *task)
 	{
 		task_ = task;
 	}
@@ -52,19 +53,18 @@ public:
 private:
 	inline void finish_one_task(int count)
 	{
-		if (counter_.fetch_sub(count) == 1) {
+		if (counter_.fetch_sub(count, std::memory_order_acq_rel) == 1) {
 			// all work done , dispatch to working thread
-			task_->dispatch_self();
-			task_ = nullptr;
 			if (on_done_) {
 				on_done_();
 				on_done_ = nullptr;
 			}
+			task_->dispatch_self();
 		}
 	}
 
 private:
-	task_ptr task_;
+	task *task_;
 	bool has_sub_task_;
 	std::atomic<int> counter_;
 	callback_type on_done_;
@@ -84,6 +84,8 @@ public:
 	{
 	}
 
+	// is the work is done, return true
+	// else return false
 	inline bool operator()(task *t) 
 	{
 		task_();
@@ -110,7 +112,7 @@ public:
 
 	inline bool operator()(task *t)
 	{
-		context_.set_task(t->shared_from_this());
+		context_.set_task(t);
 
 		task_(context_);
 

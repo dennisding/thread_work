@@ -13,7 +13,7 @@ class thread_mgr
 {
 	using thread_vector = std::vector<std::thread *>;
 	
-	thread_mgr() : quit_(false)
+	inline thread_mgr() : quit_(false)
 	{
 
 	}
@@ -32,32 +32,33 @@ public:
 	}
 
 	template <typename type>
-	inline void dispatch(std::shared_ptr<task> &&t)
+	inline void dispatch(task *task)
 	{
-		task_list<type>::instance().dispatch(std::forward<std::shared_ptr<task>>(t));
+		task_list<type>::instance().dispatch(task);
 	}
 
 	template <typename ...types>
-	void add_worker()
+	inline void add_worker()
 	{
+		task_list<types...>::instance().execute();
 		auto t = new std::thread(&worker<types...>, this);
 		threads_.push_back(t);
 	}
 
 	template <typename ...types>
-	void add_worker(int num)
+	inline void add_worker(int num)
 	{
 		for (int i = 0; i < num; ++i) {
 			add_worker<types...>();
 		}
 	}
 
-	void quit()
+	inline void quit()
 	{
 		quit_ = true;
 	}
 
-	bool is_quit()
+	inline bool is_quit()
 	{
 		return quit_;
 	}
@@ -68,8 +69,7 @@ private:
 	{
 		while (!mgr->is_quit()) {
 			task_list<types...>::instance().execute();
-			std::this_thread::yield();
-//			std::this_thread::sleep_for(std::chrono::microseconds(1));
+			std::this_thread::sleep_for(std::chrono::microseconds(100));
 		}
 	}
 
@@ -85,15 +85,9 @@ inline void sync_imp(task_types &&...tasks)
 }
 
 template <typename type>
-inline void dispatch(std::shared_ptr<task> &&t)
-{
-	thread_mgr::instance().dispatch<type>(std::forward<std::shared_ptr<task>>(t));
-}
-
-template <typename type>
 inline void dispatch(task *task)
 {
-	thread_mgr::instance().dispatch<type>(task->shared_from_this());
+	thread_mgr::instance().dispatch<type>(task);
 }
 
 THREAD_NS_END

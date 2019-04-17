@@ -50,7 +50,6 @@ template <typename type, typename task_type>
 work_at_imp<type, task_type, has_context<task_type>::value> work_at(task_type &&task)
 {
 	using work_at_type = work_at_imp<type, task_type, has_context<task_type>::value>;
-//	return work_at_imp<type, task_type, has_context<task_type>::value>(std::forward<task_type>(task));
 	return work_at_type(std::forward<task_type>(task));
 }
 
@@ -81,6 +80,8 @@ public:
 
 	virtual bool execute(tuple &t, executor *&e, task *task)
 	{
+		// final task
+		delete task;
 		return true;
 	}
 };
@@ -99,7 +100,7 @@ public:
 	{
 		// work at different working thread, dispatch the task
 		e = &executor_imp<tuple, task_type, size, index, current, current>::instance();
-		dispatch<current>(task->shared_from_this());
+		dispatch<current>(task);
 		return true;
 	}
 };
@@ -140,8 +141,9 @@ public:
 
 	virtual bool execute(tuple &t, executor<tuple, task_type> *&e, task_type *task)
 	{
+		/// final task in different working thread
 		e = &executor_imp<tuple, task_type, size, 1, current, current>::instance();
-		dispatch<current>(task->shared_from_this());
+		dispatch<current>(task);
 		return true;
 	}
 };
@@ -160,9 +162,13 @@ public:
 	virtual bool execute(tuple &t, executor<tuple, task_type> *&e, task_type *task)
 	{
 		// final task in same working thread
-		std::get<size - 1>(t)(task);
-		// set a null executor
+		// the work is done!
 		e = &executor<tuple, task_type>::instance();
+
+		if (std::get<size - 1>(t)(task)) {
+			delete task;
+		}
+
 		return true;
 	}
 };

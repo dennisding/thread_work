@@ -18,50 +18,23 @@ int main(int argc, const char **argv)
 	thread::init();
 	thread::setup();
 
-	thread::sync<thread::any>(
-	[]() {
+	thread::sync<thread::io>([](thread::context &context) {
 		std::cout << "task 1" << std::endl;
-	},
-	thread::work_at<thread::render>([](thread::context &context) {
-		std::cout << "task 2" << std::endl;
+		auto counter = std::make_shared<std::atomic<int>>();
 
-		context.sync<thread::render>([]() {
-			std::cout << "work at render" << std::endl;
+		context.on_done([counter]() {
+			std::cout << "on done!!!" << counter->load(std::memory_order_acquire) << std::endl;
 		});
 
-		context.sync<thread::render>([]() {
-			std::cout << "work at render 2" << std::endl;
-		});
-
-		context.sync<thread::render>([]() {
-			std::cout << "work at render 3" << std::endl;
-		});
-	}),
-	[](thread::context &context) {
-		std::cout << "task 3" << std::endl;
-		using counter_type = std::atomic<int>;
-
-		auto counter = std::make_shared<counter_type>(0);
-
-		context.on_done([=]() {
-			std::cout << "on done!!!" << counter->load() << std::endl;
-		});
-
-		for (int i = 0; i < 102400; ++i) {
-			context.sync<thread::any>(
-				[=](thread::context &context) {
-					(*counter)++;
-//					++g_count;
-//					std::cout << i;
-//					std::this_thread::yield();
-				}
-			);
+ 		for (int i = 0; i < 10000000; ++i) {
+			context.sync<thread::any>([i, counter]() {
+				counter->fetch_add(1, std::memory_order_release);
+			});
 		}
-	},
-	thread::work_at<thread::io>(&do_something)
+	}
 	);
 
 	while (true) {
-		std::this_thread::sleep_for(std::chrono::microseconds(1));
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 }
