@@ -1,0 +1,9 @@
+
+
+block
+	int{int} = 1
+	float{float} = 3.14159
+	str{str} = this is string content
+	sub_block
+		name{str} = 'this is a name   '
+		age{int} = 18

@@ -69,7 +69,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(SolutionDir);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(SolutionDir);$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -116,15 +121,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="test.cpp" />
-    <ClCompile Include="thread_executor.cpp" />
-    <ClCompile Include="thread_mgr.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="thread.hpp" />
-    <ClInclude Include="thread_context.hpp" />
-    <ClInclude Include="thread_executor.hpp" />
-    <ClInclude Include="thread_mgr.hpp" />
-    <ClInclude Include="thread_task.hpp" />
+    <ProjectReference Include="..\res_mgr\res_mgr.vcxproj">
+      <Project>{46fb75c4-d418-45c2-8b25-a503f8f50620}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\thread\thread.vcxproj">
+      <Project>{b9e11a12-9a94-4afa-9552-8d2006d6f9a5}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
