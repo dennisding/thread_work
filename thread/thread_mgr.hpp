@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <thread>
+#include <future>
 #include <functional>
 
 THREAD_NS_BEGIN
@@ -29,6 +30,18 @@ public:
 	inline void sync(task_types &&...tasks)
 	{
 		task_list<type>::instance().add_task(std::forward<task_types>(tasks)...);
+	}
+
+	template <typename type, typename ...task_types>
+	inline void sync_wait(task_types &&...tasks)
+	{
+		std::promise<bool> wait;
+		auto future = wait.get_future();
+
+		task_list<type>::instance().add_task(std::forward<task_types>(tasks)...,
+			[&wait]() { wait.set_value(true);  });
+
+		future.get();
 	}
 
 	template <typename type>
@@ -61,6 +74,12 @@ public:
 	inline bool is_quit()
 	{
 		return quit_;
+	}
+
+	template <typename ...types>
+	inline void tick()
+	{
+		task_list<types...>::instance().execute();
 	}
 
 private:

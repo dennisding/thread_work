@@ -13,8 +13,18 @@ public:
 
 	bool init(const std::string &title, size_t width, size_t height);
 
-	virtual size_t width();
-	virtual size_t height();
+	inline virtual size_t width()
+	{
+		return width_;
+	}
+
+	inline virtual size_t height()
+	{
+		return height_;
+	}
+
+	virtual void swap_buffers();
+	virtual void process_event();
 
 private:
 	std::string title_;

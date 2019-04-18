@@ -30,4 +30,19 @@ bool glfw_win::init(const std::string &title, size_t width, size_t height)
 	}
 
 	glfwMakeContextCurrent(win_);
+	glfwSwapInterval(1);
+
+	return true;
+}
+
+void glfw_win::process_event()
+{
+	glfwPollEvents();
+}
+
+void glfw_win::swap_buffers()
+{
+	glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glfwSwapBuffers(win_);
 }

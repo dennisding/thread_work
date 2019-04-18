@@ -12,7 +12,13 @@ public:
 	void init(const win_ptr &win);
 	void tick();
 
+	bool is_quit() 
+	{
+		return quit_;
+	}
+
 private:
 	win_ptr win_;
+	bool quit_;
 };
 

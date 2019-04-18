@@ -71,9 +71,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(SolutionDir);H:\work\cpp\thread\glfw3.0\include;$(IncludePath)</IncludePath>
+    <LibraryPath>H:\work\cpp\thread\glfw3.0\lib-vc2017;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(SolutionDir);H:\work\cpp\thread\glfw3.0\include;$(IncludePath)</IncludePath>
+    <LibraryPath>H:\work\cpp\thread\glfw3.0\lib-vc2017;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -82,6 +84,9 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>glfw3.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -103,6 +108,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>glfw3.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -128,6 +134,14 @@
     <ClInclude Include="client.hpp" />
     <ClInclude Include="glfw_win.hpp" />
     <ClInclude Include="win.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\res_mgr\res_mgr.vcxproj">
+      <Project>{46fb75c4-d418-45c2-8b25-a503f8f50620}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\thread\thread.vcxproj">
+      <Project>{b9e11a12-9a94-4afa-9552-8d2006d6f9a5}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
