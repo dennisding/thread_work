@@ -1,5 +1,7 @@
 #pragma once
 
+#include "res_config.hpp"
+
 #include <memory>
 #include <algorithm>
 
@@ -48,3 +50,17 @@ private:
 };
 
 using binary_ptr = std::shared_ptr<binary>;
+
+template <>
+struct res_info<binary>
+{
+	static binary_ptr parse(binary_ptr && bin) 
+	{
+		return std::move(bin);
+	}
+
+	static binary_ptr parse(binary_ptr& bin)
+	{
+		return bin;
+	}
+};

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "res.hpp"
 #include "file_system.hpp"
 
 #include <utils/singleton.hpp>
@@ -15,9 +16,21 @@ class res_mgr : public singleton<res_mgr>
 public:
 	void setup();
 
-	binary_ptr open(const std::string &name);
+	binary_ptr read(const std::string &name);
+	void read(const std::string &name, open_callback &&callback);
 
-	void open(const std::string &name, open_callback &&callback);
+	template <typename type>
+	std::shared_ptr<type> read(const std::string& name)
+	{
+//		auto bin = read(name);
+		return res_info<type>::parse(read(name));
+	}
+
+	template <typename type>
+	void read(const std::string& name, std::function<void(const std::shared_ptr<type> &)>&& callback)
+	{
+		callback(read<type>(name));
+	}
 
 	void add_file_system(const file_system_ptr &system, size_t pos = std::numeric_limits<int>::max());
 

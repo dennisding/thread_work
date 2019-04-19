@@ -22,7 +22,7 @@ void res_mgr::add_file_system(const file_system_ptr &system, size_t pos)
 	file_systems_.insert(insert_pos,  system);
 }
 
-binary_ptr res_mgr::open(const std::string &name)
+binary_ptr res_mgr::read(const std::string &name)
 {
 	for (auto system : file_systems_) {
 		auto bin = system->read(name);
@@ -34,9 +34,9 @@ binary_ptr res_mgr::open(const std::string &name)
 	return nullptr;
 }
 
-void res_mgr::open(const std::string &name, open_callback &&callback)
+void res_mgr::read(const std::string &name, open_callback &&callback)
 {
 	thread::sync<thread::io>([this, name, callback]() {
-		callback(open(name));
+		callback(read(name));
 	});
 }

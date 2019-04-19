@@ -1,9 +1,15 @@
 
+block1 = 1
+	block2 = 1234555 
 
-block
-	int{int} = 1
-	float{float} = 3.14159
-	str{str} = this is string content
-	sub_block
-		name{str} = 'this is a name   '
-		age{int} = 18
+
+#block = 1
+#	int{int} = 1
+#	float{float} = 3.14159
+#	str{str} = this is string content
+#	sub_block
+#		name{str} = 'this is a name   '
+#		age{int} = 18
+#		sub_block2
+#
+block7

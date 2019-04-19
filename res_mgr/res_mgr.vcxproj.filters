@@ -27,12 +27,27 @@
     <ClInclude Include="win_file_system.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="res.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="res_config.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base_res.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="win_file_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="res_mgr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="res.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="base_res.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
