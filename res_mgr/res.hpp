@@ -4,47 +4,106 @@
 
 #include "binary.hpp"
 
+#include <tuple>
 #include <string>
 #include <memory>
 
 class res
 {
+	template <size_t ...size>
+	struct index_type
+	{};
+
+	template <typename type, size_t size>
+	struct cat_index_type
+	{
+	};
+
+	template <size_t ...types, size_t size>
+	struct cat_index_type<index_type<types...>, size>
+	{
+		using type = index_type<types..., size>;
+	};
+
+	template <size_t size>
+	struct make_index
+	{
+		using type = typename cat_index_type<typename make_index<size - 1>::type, size>::type;
+	};
+
+	template <>
+	struct make_index<0>
+	{
+		using type = index_type<0>;
+	};
+
+	template <typename type, typename index>
+	struct call_helper
+	{
+	};
+
+	template <typename ...types, size_t ...indexs>
+	struct call_helper<std::tuple<types...>, index_type<indexs...> >
+	{
+		using tuple = std::tuple<types...>;
+
+		inline static tuple call(res* resource)
+		{
+			return std::make_tuple<types...>(resource->read(indexs)->as<types>()...);
+		}
+	};
+
 public:
-	res(const std::string& name) : name_(name)
+	inline res(const std::string& name) : name_(name)
 	{
 	}
 
-	res(std::string&& name) : name_(std::move(name))
+	inline res(std::string&& name) : name_(std::move(name))
 	{
 	}
 
 	virtual ~res() {}
 
-	std::string& name()
+	inline std::string& name()
 	{
 		return name_;
 	}
 
 	template <typename type>
-	type as()
+	inline type as()
 	{
 		return res_type<type>::as(this);
 	}
 
+	template <typename ...types>
+	inline std::tuple<types...> as_tuple()
+	{
+		using tuple = std::tuple<types...>;
+		using index_type = typename make_index<std::tuple_size<tuple>::value - 1>::type;
+		return call_helper<tuple, index_type>::call(this);
+	}
+
 	template <typename type>
-	type read(const std::string& name)
+	inline type read(const std::string& name)
 	{
 		return read(name.c_str())->as<type>();
 	}
 
 	template <typename type>
-	type read(const char* name)
+	inline type read(const char* name)
 	{
 		return read(name)->as<type>();
 	}
 
+	template <typename type>
+	inline type read(size_t index)
+	{
+		return read(index)->as<type>();
+	}
+
 	// virtual base implment
 	virtual std::shared_ptr<res> read(const char *name) = 0;
+	virtual std::shared_ptr<res> read(size_t index) = 0;
 
 	virtual bool as_bool()
 	{

@@ -17,6 +17,12 @@ int main(int argc, const char **argv)
 
 	auto ok = display->read<bool>("ok");
 
+//	auto tuple = display->as_tuple<int, int, float>();
+
+	auto model = display->read("model");
+	auto tuple2 = model->as_tuple<int, int, std::string>();
+
+	//auto tuple = display->as<int, int, float>();
 	// init
 	// make glfw window
 	auto win = std::make_shared<glfw_win>();

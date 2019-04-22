@@ -7,7 +7,7 @@
 template <>
 struct res_type<bool>
 {
-	static bool as(res* value)
+	inline static bool as(res* value)
 	{
 		return value->as_bool();
 	}
@@ -16,7 +16,7 @@ struct res_type<bool>
 template <>
 struct res_type<int>
 {
-	static int as(res *value)
+	inline static int as(res *value)
 	{
 		return value->as_int();
 	}
@@ -25,7 +25,7 @@ struct res_type<int>
 template <>
 struct res_type<float>
 {
-	static float as(res *value) 
+	inline static float as(res *value)
 	{
 		return value->as_float();
 	}
@@ -34,7 +34,7 @@ struct res_type<float>
 template <>
 struct res_type<double>
 {
-	static double as(res* value)
+	inline static double as(res* value)
 	{
 		return value->as_double();
 	}
@@ -43,7 +43,7 @@ struct res_type<double>
 template <>
 struct res_type<std::string>
 {
-	static std::string as(res* value)
+	inline static std::string as(res* value)
 	{
 		return value->as_string();
 	}

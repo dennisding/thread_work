@@ -38,6 +38,15 @@ public:
 		return nullptr;
 	}
 
+	virtual res_ptr read(size_t index)
+	{
+		if (index < childs_.size()) {
+			return childs_[index];
+		}
+
+		return nullptr;
+	}
+
 	virtual bool as_bool()
 	{
 		return !(value_ == "false" || value_ == "0");
