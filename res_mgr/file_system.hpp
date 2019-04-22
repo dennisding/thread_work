@@ -14,3 +14,7 @@ public:
 };
 
 using file_system_ptr = std::shared_ptr<file_system>;
+
+#include "win_file_system_imp.hpp"
+
+using local_file_system = win_file_system;

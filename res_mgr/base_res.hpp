@@ -22,9 +22,45 @@ public:
 		childs_.push_back(ptr);
 	}
 
-	void set_value(std::string &&value)
+	void set_value(std::string&& value)
 	{
 		value_.operator=(std::forward<std::string>(value));
+	}
+
+	// virtual method implements
+	virtual res_ptr read(const char *name)
+	{
+		for (auto& it : childs_) {
+			if (it->name() == name) {
+				return it;
+			}
+		}
+		return nullptr;
+	}
+
+	virtual bool as_bool()
+	{
+		return !(value_ == "false" || value_ == "0");
+	}
+
+	virtual int as_int()
+	{
+		return std::stoi(value_);
+	}
+
+	virtual float as_float()
+	{
+		return std::stof(value_);
+	}
+
+	virtual double as_double()
+	{
+		return std::stod(value_);
+	}
+
+	virtual std::string &as_string()
+	{
+		return value_;
 	}
 
 private:

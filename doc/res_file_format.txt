@@ -1,0 +1,31 @@
+#
+# 1. 行注释, 
+# 号后面的字符都是注释
+
+# 2. 缩进, 用tab来做缩进
+models
+	model
+		name{str} = 'model_1'
+	model
+		name = 'model2'
+
+# 3. 类型设置
+name{str} = 中文
+
+# 4. 基础类型, bool, int, float, double, str, 
+index{int} = 1
+delta{float} = 3.14
+delta{double} = 3.14
+name{str} = 'some name'
+
+# 5. 字符串格式
+a = 1234code    # 去掉空格
+b = '  str  '
+b = " some str  "
+
+# 6. 数值列表
+pos{float, float, float} = 3.14 4.14 5.14
+
+# aliase.res
+# mat = int,int,int
+# vec = float, float, float

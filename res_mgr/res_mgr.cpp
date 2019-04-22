@@ -1,6 +1,6 @@
 
 #include "res_mgr.hpp"
-#include "win_file_system.hpp"
+//#include "win_file_system.hpp"
 
 #include <thread/thread.hpp>
 
@@ -9,7 +9,7 @@
 void res_mgr::setup()
 {
 	// add win file system
-	add_file_system(std::make_shared<win_file_system>(), 0);
+	add_file_system(std::make_shared<local_file_system>(), 0);
 }
 
 void res_mgr::add_file_system(const file_system_ptr &system, size_t pos)

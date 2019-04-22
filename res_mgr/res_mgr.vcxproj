@@ -132,7 +132,8 @@
     <ClInclude Include="res.hpp" />
     <ClInclude Include="res_config.hpp" />
     <ClInclude Include="res_mgr.hpp" />
-    <ClInclude Include="win_file_system.hpp" />
+    <ClInclude Include="res_types.hpp" />
+    <ClInclude Include="win_file_system_imp.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="base_res.cpp" />

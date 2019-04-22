@@ -221,6 +221,9 @@ private:
 			if (token == parser_info::NEW_LINE) { // end
 				break;
 			}
+			else if (token == parser_info::COMMENT) { // end
+				break;
+			}
 			else if (token == parser_info::STR_MARK) {
 				auto quote = data[index_];
 				++index_; // eat the ' or "

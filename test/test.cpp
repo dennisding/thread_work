@@ -11,6 +11,7 @@ int main(int argc, const char **argv)
 
 	auto bin = res_mgr::instance().read<binary>("test.txt");
 
-	auto resource = res_mgr::instance().read<res>("test.txt");
-	//auto inf = res_mgr::instance().read<res>("test.txt");
+	auto info = res_mgr::instance().read<res>("test.txt");
+
+	auto result = info->read<std::string>("block");
 }
