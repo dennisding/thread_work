@@ -6,6 +6,7 @@
 
 #include <tuple>
 #include <string>
+#include <vector>
 #include <memory>
 
 class res
@@ -64,11 +65,11 @@ class res
 	};
 
 public:
-	inline res(const std::string& name) : name_(name)
+	inline res(const std::string& name) noexcept: name_(name)
 	{
 	}
 
-	inline res(std::string&& name) : name_(std::move(name))
+	inline res(std::string&& name) noexcept: name_(std::move(name))
 	{
 	}
 
@@ -118,7 +119,32 @@ public:
 			return type();
 		}
 		return child->as<type>();
-//		return read(index)->as<type>();
+	}
+
+	inline  std::vector<std::shared_ptr<res>> read_childs(const std::string& name)
+	{
+		return read_childs(name.c_str());
+	}
+
+	std::vector<std::shared_ptr<res>> read_childs(const char *name)
+	{
+		size_t index = 0;
+		std::vector<std::shared_ptr<res>> childs;
+		for (;;) {
+			auto child = read(index);
+
+			if (!child) {
+				break;
+			}
+
+			if (child->name() == name) {
+				childs.push_back(child);
+			}
+
+			++index;
+		}
+
+		return std::move(childs);
 	}
 
 	// virtual base implment

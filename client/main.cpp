@@ -8,23 +8,17 @@ int main(int argc, const char **argv)
 {
 	auto config = local_file_system::load_config("config.res");
 
-	auto display = config->read("display");
+	auto win_config = config->read("win");
+	int width = win_config->read<int>("width");
+	int height = win_config->read<int>("height");
+	std::string title = win_config->read<std::string>("title");
 
-	auto width = display->read<int>("width");
-	auto height = display->read<int>("height");
-	auto title = display->read<std::string>("title");
+	auto  test = config->read("test");
 
-	bool ok = display->read<bool>("ok");
+	auto t = test->as_tuple<std::string, std::string, std::string>();
 
-	auto model = display->read("model");
-	auto tuple2 = model->as_tuple<int, int, std::string>();
+	auto child = test->read_childs("aa");
 
-	auto xmodel = config->read("xmodel");
-
-	auto xm = xmodel->as_tuple<int, int, std::string, std::string, std::string>();
-
-	//auto tuple = display->as<int, int, float>();
-	// init
 	// make glfw window
 	auto win = std::make_shared<glfw_win>();
 	win->init(title, width, height);

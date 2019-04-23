@@ -8,13 +8,13 @@
 class binary
 {
 public:
-	inline binary(size_t size) : size_(size)
+	inline binary(size_t size) noexcept : size_(size)
 	{
 		data_ = new char[size + 1];
 		data_[size] = 0;
 	}
 
-	inline binary(binary &&bin)
+	inline binary(binary &&bin) noexcept
 	{
 		size_ = bin.size_;
 		data_ = bin.data_;
@@ -28,7 +28,7 @@ public:
 		delete[] data_;
 	}
 
-	inline binary &operator=(binary &&bin)
+	inline binary &operator=(binary &&bin) noexcept
 	{
 		std::swap(size_, bin.size_);
 		std::swap(data_, bin.data_);

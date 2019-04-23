@@ -1,17 +1,19 @@
 
 #include <iostream>
 
-#include <thread/thread.hpp>
+void test_fun()
+{
+}
 
-#include <res_mgr/res_mgr.hpp>
+template <typename type, typename ...types>
+void test_fun(type t, types ...args)
+{
+	test_fun(args...);
+
+	std::cout << t;
+}
 
 int main(int argc, const char **argv)
 {
-	res_mgr::instance().setup();
-
-	auto bin = res_mgr::instance().read<binary>("test.txt");
-
-	auto info = res_mgr::instance().read<res>("test.txt");
-
-	auto result = info->read<std::string>("block");
+	test_fun(1, 2, 4);
 }

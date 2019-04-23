@@ -24,7 +24,9 @@ public:
 		ASSIGN,
 		COMMENT,
 		LIST_BEGIN,
-		LIST_END
+		LIST_END,
+		ARG_STAR,
+		ARG_END
 	};
 
 	parser_info()
@@ -51,6 +53,8 @@ private:
 		char_table_['#'] = COMMENT;
 		char_table_['['] = LIST_BEGIN;
 		char_table_[']'] = LIST_END;
+		char_table_['<'] = ARG_STAR;
+		char_table_['>'] = ARG_END;
 	}
 };
 
@@ -77,6 +81,10 @@ public:
 
 		// parse the root
 		parse_block();
+
+		for (auto& it : stack_) {
+			it->ready();
+		}
 
 		return root_;
 	}
@@ -189,6 +197,7 @@ private:
 			if (token == parser_info::NEW_LINE || 
 				token == parser_info::COMMENT ||
 				token == parser_info::TYPE_START ||
+				token == parser_info::ARG_STAR ||
 				token== parser_info::ASSIGN ||
 				data[index_] == sep1 ||
 				data[index_] == sep2) {
@@ -218,18 +227,7 @@ private:
 
 	void feed_one_block()
 	{
-		std::string name = parse_str();
-
-		auto new_block = std::make_shared<base_res>(std::move(name));
-
-		// pop the stack by ident
-		assert(indent_ <= stack_.size() - 1);
-		while (stack_.size() > indent_ + 1) {
-			stack_.pop_back();
-		}
-
-		(*stack_.rbegin())->add_child(new_block);
-		stack_.push_back(std::move(new_block));
+		auto new_block = std::make_shared<base_res>(parse_str());
 
 		// scan_type
 		auto data = bin_->get_data();
@@ -245,7 +243,29 @@ private:
 
 				std::string type_str(data + start, end - start);
 			}
+			else if (token == parser_info::ARG_STAR) {
+				++index_; // eat the <
+
+				std::string arg = parse_str(',', '>');
+				while (!arg.empty()) {
+					if (arg == "sequence") {
+						new_block->set_sorted(false);
+					}
+
+					arg = parse_str(',', '>');
+				}
+			}
 		}
+
+		// pop the stack by ident
+		assert(indent_ <= stack_.size() - 1);
+		while (stack_.size() > indent_ + 1) {
+			(*stack_.rbegin())->ready();
+			stack_.pop_back();
+		}
+
+		(*stack_.rbegin())->add_child(new_block);
+		stack_.push_back(std::move(new_block));
 	}
 
 	void feed_assign()
@@ -258,19 +278,21 @@ private:
 		}
 
 		auto token = g_parser_info.char_table_[bin_->get_data()[index_]];
+		auto block = *stack_.rbegin();
 		if (token == parser_info::LIST_BEGIN) {
 			// parse the list
+			block->set_sorted(false);
 			++index_; // eat the [
 			do {
 				std::string value = parse_str(',', ']');
-				(*stack_.rbegin())->add_child(std::make_shared<base_res>(value));;
+				block->add_child(std::make_shared<base_res>(value));;
 
 				token = g_parser_info.char_table_[bin_->get_data()[index_]];
 				++index_; // eat the , or ]
 			} while (token != parser_info::LIST_END);
 		}
 		else {
-			(*stack_.rbegin())->set_value(parse_str());
+			block->set_value(parse_str());
 		}
 	}
 

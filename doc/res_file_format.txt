@@ -19,13 +19,17 @@ delta{double} = 3.14
 name{str} = 'some name'
 
 # 5. 字符串格式
-a = 1234code    # 去掉空格
+a = 1234code    # 去掉前后空格
 b = '  str  '
 b = " some str  "
 
 # 6. 数值列表
 pos{float, float, float} = 3.14 4.14 5.14
 
-# aliase.res
-# mat = int,int,int
-# vec = float, float, float
+# 7 列表
+pos = [1, 2, "str value!"]
+
+# 8 顺序保持
+block<sequence>
+	1 = 1
+	2 = 2
