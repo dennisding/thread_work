@@ -23,6 +23,8 @@ public:
 		SPACE,
 		ASSIGN,
 		COMMENT,
+		LIST_BEGIN,
+		LIST_END
 	};
 
 	parser_info()
@@ -47,6 +49,8 @@ private:
 		char_table_[' '] = SPACE;
 		char_table_['='] = ASSIGN;
 		char_table_['#'] = COMMENT;
+		char_table_['['] = LIST_BEGIN;
+		char_table_[']'] = LIST_END;
 	}
 };
 
@@ -81,13 +85,11 @@ private:
 	void parse_block()
 	{
 		while (index_ < bin_->size()) {
-			auto index = index_;
-			++index_;
 
-			auto token = g_parser_info.char_table_[bin_->get_data()[index]];
+			auto token = g_parser_info.char_table_[bin_->get_data()[index_]];
 
 			if (token == parser_info::BLOB) {
-				feed_one_block(index);
+				feed_one_block();
 			}
 			else if (token == parser_info::COMMENT) {
 				skip_to(parser_info::NEW_LINE);
@@ -95,14 +97,19 @@ private:
 			else if (token == parser_info::ASSIGN) {
 				feed_assign();
 			}
+			else {
+				++index_;
+			}
 
 			// reset the indent
 			if (token == parser_info::INDENT) {
 				++indent_;
 			}
-			else {
+			else if (token == parser_info::NEW_LINE){
 				indent_ = 0;
 			}
+
+//			++index_;
 		}
 	}
 
@@ -161,26 +168,58 @@ private:
 				--match;
 			}
 
-			++index_;
-
 			if (match == 0) {
 				break;
 			}
+
+			++index_;
 		}
 	}
 
-	void feed_one_block(size_t begin)
+	std::string parse_str(char sep1 = '\0', char sep2 = '\0')
 	{
-		eat(parser_info::BLOB);
+		skip_space();
 
-		// check type
-		if (index_ < bin_->size()) {
-			auto current = bin_->get_data()[index_];
-			if (current == parser_info::TYPE_START) {
+		auto data = bin_->get_data();
+		auto begin = index_;
+		auto end_char = index_;
+		while (index_ < bin_->size()) {
+			auto token = g_parser_info.char_table_[data[index_]];
+
+			if (token == parser_info::NEW_LINE || 
+				token == parser_info::COMMENT ||
+				token == parser_info::TYPE_START ||
+				token== parser_info::ASSIGN ||
+				data[index_] == sep1 ||
+				data[index_] == sep2) {
+				break;
 			}
+
+			if (token == parser_info::STR_MARK) {
+				auto quote = data[index_];
+				++index_; // eat the ' or "
+				begin = index_;
+				// parse the string!
+				skip_to_str_end(quote);
+				end_char = index_;
+				++index_; // erase the end ' or "
+				break;
+			}
+			
+			if (token != parser_info::SPACE) {
+				end_char = index_ + 1;
+			}
+
+			++index_;
 		}
 
-		std::string name(bin_->get_data() + begin, index_ - begin);
+		return std::string(data + begin, end_char - begin);
+	}
+
+	void feed_one_block()
+	{
+		std::string name = parse_str();
+
 		auto new_block = std::make_shared<base_res>(std::move(name));
 
 		// pop the stack by ident
@@ -193,8 +232,9 @@ private:
 		stack_.push_back(std::move(new_block));
 
 		// scan_type
+		auto data = bin_->get_data();
 		if (index_ < bin_->size()) {
-			auto token = g_parser_info.char_table_[bin_->get_data()[index_]];
+			auto token = g_parser_info.char_table_[data[index_]];
 			if (token == parser_info::TYPE_START) {
 				++index_; // eat the {
 				auto start = index_;
@@ -203,47 +243,34 @@ private:
 				auto end = index_ - 1; // index include the last }
 				++index_; // eat the }
 
-				std::string type_str(bin_->get_data() + start, end - start);
+				std::string type_str(data + start, end - start);
 			}
 		}
 	}
 
 	void feed_assign()
 	{
+		++index_; // eat the '='
+
 		skip_space();
-
-		auto data = bin_->get_data();
-		auto begin = index_;
-		auto end_char = index_;
-		while (index_ < bin_->size()) {
-			auto token = g_parser_info.char_table_[data[index_]];
-			
-			if (token == parser_info::NEW_LINE) { // end
-				break;
-			}
-			else if (token == parser_info::COMMENT) { // end
-				break;
-			}
-			else if (token == parser_info::STR_MARK) {
-				auto quote = data[index_];
-				++index_; // eat the ' or "
-				begin = index_;
-				// parse the string!
-				skip_to_str_end(quote);
-				end_char = index_;
-				++index_; // erase the end ' or "
-				break;
-			}
-			else if (token != parser_info::SPACE) {
-				end_char = index_;
-			}
-
-			++index_;
-			end_char = index_;
+		if (index_ >= bin_->size()) {
+			return;
 		}
 
-		if (end_char != begin) {
-			(*stack_.rbegin())->set_value(std::string(data + begin, end_char - begin));
+		auto token = g_parser_info.char_table_[bin_->get_data()[index_]];
+		if (token == parser_info::LIST_BEGIN) {
+			// parse the list
+			++index_; // eat the [
+			do {
+				std::string value = parse_str(',', ']');
+				(*stack_.rbegin())->add_child(std::make_shared<base_res>(value));;
+
+				token = g_parser_info.char_table_[bin_->get_data()[index_]];
+				++index_; // eat the , or ]
+			} while (token != parser_info::LIST_END);
+		}
+		else {
+			(*stack_.rbegin())->set_value(parse_str());
 		}
 	}
 

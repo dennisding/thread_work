@@ -49,7 +49,17 @@ class res
 
 		inline static tuple call(res* resource)
 		{
-			return std::make_tuple<types...>(resource->read(indexs)->as<types>()...);
+			return std::make_tuple<types...>(do_call<types>(resource, indexs)...);
+		}
+
+		template <typename type>
+		static inline type do_call(res *resource, size_t index)
+		{
+			auto ptr = resource->read(index);
+			if (!ptr) {
+				return type();
+			}
+			return ptr->as<type>();
 		}
 	};
 
@@ -86,30 +96,40 @@ public:
 	template <typename type>
 	inline type read(const std::string& name)
 	{
-		return read(name.c_str())->as<type>();
+		return read<type>(name.c_str());
 	}
 
 	template <typename type>
 	inline type read(const char* name)
 	{
-		return read(name)->as<type>();
+		auto child = read(name);
+		if (!child) {
+			return type();
+		}
+
+		return child->as<type>();
 	}
 
 	template <typename type>
 	inline type read(size_t index)
 	{
-		return read(index)->as<type>();
+		auto child = read(index);
+		if (!child) {
+			return type();
+		}
+		return child->as<type>();
+//		return read(index)->as<type>();
 	}
 
 	// virtual base implment
-	virtual std::shared_ptr<res> read(const char *name) = 0;
+	virtual std::shared_ptr<res> read(const char* name) = 0;
 	virtual std::shared_ptr<res> read(size_t index) = 0;
 
 	virtual bool as_bool()
 	{
 		auto value = as_string();
 
-		return !(value == "false" || value == "0");
+		return !(value == "false" || value == "0" || value.empty());
 	}
 
 	virtual int as_int()

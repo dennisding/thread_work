@@ -13,7 +13,7 @@ public:
 	using res_vector = std::vector<base_res_ptr>;
 
 public:
-	base_res(const std::string& name) : res(name)
+	base_res(const std::string& name) : res(name), value_(name)
 	{
 	}
 
@@ -49,7 +49,7 @@ public:
 
 	virtual bool as_bool()
 	{
-		return !(value_ == "false" || value_ == "0");
+		return !(value_ == "false" || value_ == "0" || value_.empty());
 	}
 
 	virtual int as_int()

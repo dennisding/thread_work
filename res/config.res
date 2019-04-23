@@ -1,4 +1,5 @@
 
+xmodel = [640, 480, some string, code, 'infos!!!!']
 
 code{str} = gb936 # some comment
 
@@ -6,8 +7,8 @@ display
 	width{int} = 640
 	height{int} = 480
 	title{str} = '中文名字'
-	ok = 0
+	ok = false
 	model
-		1=640
-		2=480
-		3=1234577 中文 china
+		640
+		480
+		some  string

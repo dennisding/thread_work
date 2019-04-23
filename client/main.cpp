@@ -12,15 +12,16 @@ int main(int argc, const char **argv)
 
 	auto width = display->read<int>("width");
 	auto height = display->read<int>("height");
-
 	auto title = display->read<std::string>("title");
 
-	auto ok = display->read<bool>("ok");
-
-//	auto tuple = display->as_tuple<int, int, float>();
+	bool ok = display->read<bool>("ok");
 
 	auto model = display->read("model");
 	auto tuple2 = model->as_tuple<int, int, std::string>();
+
+	auto xmodel = config->read("xmodel");
+
+	auto xm = xmodel->as_tuple<int, int, std::string, std::string, std::string>();
 
 	//auto tuple = display->as<int, int, float>();
 	// init
