@@ -1,19 +1,33 @@
 
 #include <iostream>
 
-void test_fun()
-{
-}
-
-template <typename type, typename ...types>
-void test_fun(type t, types ...args)
-{
-	test_fun(args...);
-
-	std::cout << t;
-}
+#include <res_mgr/stream.hpp>
+#include <res_mgr/file_system.hpp>
 
 int main(int argc, const char **argv)
 {
-	test_fun(1, 2, 4);
+
+	auto config = local_file_system::load_config("test.txt");
+
+	auto block = config->to_block();
+
+	auto name = block->root_.name();
+
+	block::sub_block sb = block->root_.read("block");
+
+	auto models = block->root_.read("models");
+
+	auto mn = models.name();
+
+	for (int i = 0; i < 10; ++i) {
+		auto child = models.read(i);
+		if (child.is_valid()) {
+			auto sub_name = child.name();
+
+			int i = 3;
+		}
+		else {
+			break;
+		}
+	}
 }

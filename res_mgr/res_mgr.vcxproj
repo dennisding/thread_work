@@ -128,11 +128,15 @@
   <ItemGroup>
     <ClInclude Include="base_res.hpp" />
     <ClInclude Include="binary.hpp" />
+    <ClInclude Include="bin_res.hpp" />
+    <ClInclude Include="block.hpp" />
+    <ClInclude Include="data_type_infos.hpp" />
     <ClInclude Include="file_system.hpp" />
     <ClInclude Include="res.hpp" />
     <ClInclude Include="res_config.hpp" />
     <ClInclude Include="res_mgr.hpp" />
     <ClInclude Include="res_types.hpp" />
+    <ClInclude Include="stream.hpp" />
     <ClInclude Include="win_file_system_imp.hpp" />
   </ItemGroup>
   <ItemGroup>

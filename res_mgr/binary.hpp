@@ -44,6 +44,24 @@ public:
 		return size_;
 	}
 
+	inline void resize(size_t size)
+	{
+		if (size <= size_) {
+			size_ = size;
+		}
+		else {
+			char* new_data = new char[size + 1];
+			new_data[size] = '\0';
+			std::memcpy(new_data, data_, size_);
+
+			delete[] data_;
+
+			// reset the data and size
+			data_ = new_data;
+			size_ = size;
+		}
+	}
+
 private:
 	size_t size_;
 	char *data_;
