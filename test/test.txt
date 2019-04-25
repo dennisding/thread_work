@@ -1,6 +1,7 @@
 
 
-block = 1234
+block{int, int, int, double} = 1234
 models
 	model
 		namexxx = 'it is a good model!!!'
+		pos{float, float, float} = 3.1415 4.11 5.12

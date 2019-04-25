@@ -4,8 +4,8 @@
 
 #include <utils/singleton.hpp>
 
-#include <cassert>
 #include <vector>
+#include <cassert>
 
 class parser_info
 {
@@ -236,13 +236,14 @@ private:
 			auto token = g_parser_info.char_table_[data[index_]];
 			if (token == parser_info::TYPE_START) {
 				++index_; // eat the {
-				auto start = index_;
-				scan_type_str();
+				std::string type_str= parse_str(',', '}');
+				while (!type_str.empty()) {
+					process_type(new_block, type_str);
 
-				auto end = index_ - 1; // index include the last }
-				++index_; // eat the }
-
-				std::string type_str(data + start, end - start);
+					++index_;
+					type_str = parse_str(',', '}');
+				}
+				++index_; // eat the , or }
 			}
 			else if (token == parser_info::ARG_STAR) {
 				++index_; // eat the <
@@ -267,6 +268,10 @@ private:
 
 		(*stack_.rbegin())->add_child(new_block);
 		stack_.push_back(std::move(new_block));
+	}
+
+	void process_type(base_res_ptr& res, const std::string& type_str)
+	{
 	}
 
 	void feed_assign()

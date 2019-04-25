@@ -23,7 +23,7 @@ int main(int argc, const char **argv)
 		auto child = models.read(i);
 		if (child.is_valid()) {
 			auto sub_name = child.name();
-
+			auto value = child.value() + sizeof(int32_t);
 			int i = 3;
 		}
 		else {

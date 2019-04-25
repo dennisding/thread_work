@@ -9,9 +9,6 @@ class block
 public:
 	struct header
 	{
-		//header(int32_t id = '\0bk\0', int32_t node_size = 0) : id_(id), node_size_(node_size)
-		//{
-		//}
 		header() = default;
 		header(int32_t size) : id_('\0bk\0'), node_size_(size)
 		{
