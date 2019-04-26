@@ -11,11 +11,11 @@ int main(int argc, const char **argv)
 
 	auto block = config->to_block();
 
-	auto name = block->root_.name();
+	auto name = block->root().name();
 
-	block::sub_block sb = block->root_.read("block");
+	block::sub_block sb = block->root().read("block");
 
-	auto models = block->root_.read("models");
+	auto models = block->root().read("models");
 
 	auto mn = models.name();
 

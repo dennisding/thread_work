@@ -1,0 +1,27 @@
+
+struct header
+{
+	int32_t id_;
+	int32_t node_size_;
+}
+
+struct node
+{
+	int32_t flag_; 
+	int32_t value_; // value索引, 从文件开始
+	int32_t child_; // 子节点的起始位置, 保存的是当前位置的偏移值
+}
+
+strut value
+{
+	int32_t value_offset_;
+	const char name_[name_size + 1];
+	const char value_[value_size + 1];
+}
+
+struct file_format
+{
+	header header_;
+	node nodes_[header_.node_size_];
+	value values_[header_.node_size_];
+}

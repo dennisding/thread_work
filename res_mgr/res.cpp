@@ -323,7 +323,7 @@ public:
 	{
 		// pack node
 		int32_t value = write_value(res_);
-		nodes_.push_back(block::node(value + sizeof(block::header)));
+		nodes_.push_back(block::node(value));
 		nodes_[0].child_ = 1;
 
 		pack_child(res_);
@@ -349,7 +349,7 @@ public:
 			auto child = res->read(index);
 			if (child) {
 				int32_t value = write_value(child.get());
-				nodes_.push_back(block::node(value + sizeof(block::header)));
+				nodes_.push_back(block::node(value));
 			}
 			else {
 				break;
@@ -373,12 +373,14 @@ public:
 
 	size_t write_value(res_ptr res)
 	{
+		values_.align();
+
 		size_t pos = values_.get_pos();
 
 		const std::string& name = res->name();
-		int32_t offset = sizeof(int32_t) + name.size() + (4 - name.size() % 4); 
+		int32_t offset = sizeof(int32_t) + name.size() + 1; 
 		values_.write(offset);
-		values_.write(name.c_str());
+		values_.write(name);
 
 		values_.write(res->as<std::string>());
 

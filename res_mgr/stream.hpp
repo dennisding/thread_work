@@ -42,49 +42,58 @@ public:
 	// write pod only
 	// didn't reset the index
 	template <typename type>
-	size_t write_at(const type& value, size_t pos)
+	inline size_t write_at(const type& value, size_t pos)
 	{
 		std::memcpy(bin_->get_data() + pos, &value, sizeof(value));
 	}
 
 	template <typename type>
-	size_t write(const type &value)
+	inline size_t write(const type &value)
 	{
 		return write(value, fun_selector<std::is_standard_layout<type>::value>());
 	}
 
-	size_t write(void* ptr, size_t size)
+	inline size_t write(void* ptr, size_t size)
 	{
-		if (size + index_ > bin_->size()) {
-			expand_bin(size);
-		}
+		prepare_space(size);
 		std::memcpy(bin_->get_data() + index_, ptr, size);
 		index_ += size;
 		return size;
 	}
 
+	inline size_t write(const char* value, size_t size)
+	{
+		return write((void *)value, size);
+	}
+
 	size_t write(const char* value)
 	{
-		size_t size = std::strlen(value);
-		if (size + index_ > bin_->size()) {
-			expand_bin(size);
-		}
+		size_t size = std::strlen(value) + 1; // write the '\0' code
+		prepare_space(size);
 
 		std::memcpy(bin_->get_data() + index_, value, size);
 		index_ += size;
 
-		size_t indent = 4 - size % 4;
-		for (size_t i = 0; i < indent; ++i) {
-			write('\0');
+		return size;
+	}
+
+	void align(size_t size = 4)
+	{
+		size_t remain = index_ % size;
+		if (remain == 0) {
+			return;
 		}
 
-		return size + indent;
+		size_t padding = size - remain;
+		prepare_space(padding);
+
+		std::memset(bin_->get_data() + index_, 0, padding);
+		index_ += padding;
 	}
 
 	binary_ptr get_bin()
 	{
 		bin_->resize(index_);
-//		return bin_;
 		return std::move(bin_);
 	}
 
@@ -97,8 +106,16 @@ public:
 	}
 
 private:
+	inline void prepare_space(size_t size)
+	{
+		if (size + index_ > bin_->size()) {
+			auto new_size = std::max(index_ + size, bin_->size() + block_size());
+			bin_->resize(new_size);
+		}
+	}
+
 	template <typename type>
-	size_t write(const type& value, const fun_selector<0>& fun)
+	inline size_t write(const type& value, const fun_selector<0>& fun)
 	{
 		return stream_writer<type>::write(this, value);
 	}
@@ -108,21 +125,12 @@ private:
 	{
 		size_t size = sizeof(type);
 
-		if (size + index_ > bin_->size()) {
-			expand_bin(size);
-		}
+		prepare_space(size);
 
 		std::memcpy(bin_->get_data() + index_, &value, size);
 		index_ += size;
 
 		return size;
-	}
-
-private:
-	void expand_bin(size_t data_size)
-	{
-		auto new_size = std::max(index_ + data_size, bin_->size() + block_size());
-		bin_->resize(new_size);
 	}
 
 private:
@@ -138,7 +146,7 @@ struct stream_writer<std::string>
 		int32_t size = (int32_t)value.size();
 		
 		s->write(size);
-		size_t str_size = s->write(value.c_str());
+		size_t str_size = s->write(value.c_str(), size + 1);
 		
 		return sizeof(int32_t) + str_size;
 	}

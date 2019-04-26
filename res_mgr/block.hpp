@@ -117,11 +117,17 @@ public:
 		header* h = (header *)bin->get_data();
 
 		// offset = header + offset
-		root_.data_ = bin_->get_data() + sizeof(node)*h->node_size_;
+//		root_.data_ = bin_->get_data() + sizeof(node)*h->node_size_;
+		root_.data_ = bin_->get_data() + sizeof(node) * h->node_size_ + sizeof(header);
 	}
 
 	sub_block* read(const char* name)
 	{
+	}
+
+	inline sub_block& root()
+	{
+		return root_;
 	}
 
 public:
