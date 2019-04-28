@@ -141,6 +141,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="base_res.cpp" />
+    <ClCompile Include="block.cpp" />
     <ClCompile Include="res.cpp" />
     <ClCompile Include="res_mgr.cpp" />
     <ClCompile Include="win_file_system.cpp" />

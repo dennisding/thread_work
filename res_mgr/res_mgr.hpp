@@ -22,7 +22,6 @@ public:
 	template <typename type>
 	std::shared_ptr<type> read(const std::string& name)
 	{
-//		auto bin = read(name);
 		return res_info<type>::parse(read(name));
 	}
 

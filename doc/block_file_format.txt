@@ -3,12 +3,15 @@ struct header
 {
 	int32_t id_;
 	int32_t node_size_;
+	int32_t name_offset_;
+	int32_t value_offset_;
 }
 
 struct node
 {
 	int32_t flag_; 
-	int32_t value_; // value索引, 从文件开始
+	int32_t name_;
+	int32_t value_;
 	int32_t child_; // 子节点的起始位置, 保存的是当前位置的偏移值
 }
 
@@ -23,5 +26,6 @@ struct file_format
 {
 	header header_;
 	node nodes_[header_.node_size_];
-	value values_[header_.node_size_];
+	c_string name_tables;
+	value value_table[header.node_size_]
 }

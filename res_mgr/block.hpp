@@ -1,5 +1,6 @@
 #pragma once
 
+#include "res.hpp"
 #include "binary.hpp"
 
 #include <memory>
@@ -10,19 +11,22 @@ public:
 	struct header
 	{
 		header() = default;
-		header(int32_t size) : id_('\0bk\0'), node_size_(size)
+		header(uint32_t ver) : id_('\0bk\0'), ver_(ver), name_(0), value_(0)
 		{
 
 		}
 
-		int32_t id_;
-		int32_t node_size_;
+		uint32_t id_;
+		uint32_t ver_;
+		uint32_t name_;
+		uint32_t value_;
 	};
 
 	struct node
 	{
 		node() = default;
-		node(int32_t value) : value_(value), child_(0)
+		node(int32_t name, int32_t value) 
+			: flag_(0), name_(name), value_(value), child_(0), child_num_(0)
 		{
 		}
 
@@ -31,23 +35,19 @@ public:
 			return value_ != 0;
 		}
 
+		int32_t flag_;
+		int32_t name_;
 		int32_t value_;
 		int32_t child_;
-	};
-
-	struct value
-	{
-		const char* name_ = nullptr;
-		const char* value_ = nullptr;
+		int32_t child_num_;
 	};
 
 	class sub_block
 	{
 	public:
-		sub_block(const char* data = nullptr, node* nodes = nullptr)
-			: data_(data), nodes_(nodes)
+		sub_block(node* nodes = nullptr, const char* name = nullptr, const char* value = nullptr)
+			: nodes_(nodes), name_(name), value_(value)
 		{
-			data_ = data;
 		}
 
 		inline const char* name()
@@ -57,7 +57,8 @@ public:
 
 		inline const char* name(node* node)
 		{
-			return data_ + node->value_ + sizeof(int32_t);
+//			return name_ + node->value_;
+			return name_ + node->name_;
 		}
 
 		inline const char* value()
@@ -67,20 +68,16 @@ public:
 
 		inline const char* value(node *n)
 		{
-			auto value_offset = *((int32_t *)(data_ + n->value_));
-
-			return data_ + n->value_ + value_offset;
+			return value_ + n->value_;
 		}
 
 		inline sub_block read(const char* in_name)
 		{
 			auto child = nodes_ + nodes_->child_;
-			while (child->is_valid()) {
-				// check the child name
-				if (std::strcmp(name(child), in_name) == 0) {
-					return sub_block(data_, child);
+			for (int index = 0; index < nodes_->child_num_; ++index) {
+				if (std::strcmp(name(child + index), in_name) == 0) {
+					return sub_block(child + index, name_, value_);
 				}
-				child = child + 1;
 			}
 
 			return sub_block();
@@ -88,16 +85,17 @@ public:
 
 		inline sub_block read(size_t index)
 		{
-			auto child = nodes_ + nodes_->child_ + index;
-			if (child->is_valid()) {
-				return sub_block(data_, child);
+			if (index >= (size_t)nodes_->child_num_) {
+				return sub_block();
 			}
-			return sub_block();
+
+			auto child = nodes_ + nodes_->child_ + index;
+			return sub_block(child, name_, value_);
 		}
 
 		inline bool is_valid()
 		{
-			return data_ != nullptr;
+			return nodes_ != nullptr;
 		}
 
 		template <typename type>
@@ -106,23 +104,19 @@ public:
 		}
 
 	public:
-		const char* data_;
 		node* nodes_;
+		const char* name_;
+		const char* value_;
 	};
 
 public:
 	block(const binary_ptr& bin) : bin_(bin)
 	{
-		root_.nodes_ = (node *)(bin_->get_data() + sizeof(header));
-		header* h = (header *)bin->get_data();
+		header* h = (header*)bin->get_data();
 
-		// offset = header + offset
-//		root_.data_ = bin_->get_data() + sizeof(node)*h->node_size_;
-		root_.data_ = bin_->get_data() + sizeof(node) * h->node_size_ + sizeof(header);
-	}
-
-	sub_block* read(const char* name)
-	{
+		root_.nodes_ = (node*)(bin->get_data() + sizeof(block::header));
+		root_.name_ = bin->get_data() + h->name_;
+		root_.value_ = bin->get_data() + h->value_;
 	}
 
 	inline sub_block& root()
@@ -140,3 +134,4 @@ private:
 using block_ptr = std::shared_ptr<block>;
 
 
+block_ptr to_block(const res_ptr &res);

@@ -4,6 +4,7 @@
 
 #include <utils/singleton.hpp>
 
+#include <map>
 #include <vector>
 #include <cassert>
 
@@ -117,8 +118,6 @@ private:
 			else if (token == parser_info::NEW_LINE){
 				indent_ = 0;
 			}
-
-//			++index_;
 		}
 	}
 
@@ -310,99 +309,9 @@ private:
 	res_vector stack_;
 };
 
-class block_packer
-{
-	using node_vector = std::vector<block::node>;
-	using res_ptr = res *;
-public:
-	block_packer(res_ptr res) : res_(res)
-	{
-	}
-
-	block_ptr pack()
-	{
-		// pack node
-		int32_t value = write_value(res_);
-		nodes_.push_back(block::node(value));
-		nodes_[0].child_ = 1;
-
-		pack_child(res_);
-
-		stream result;
-		
-		result.write(block::header(nodes_.size()));
-
-		result.write(&nodes_[0], nodes_.size() * sizeof(block::node));
-
-		binary_ptr values = values_.get_bin();
-		result.write(values->get_data(), values->size());
-
-		auto bin = result.get_bin();
-		return std::make_shared<block>(bin);
-	}
-
-	void pack_child(res_ptr res)
-	{
-		auto start = nodes_.size();
-		// pack node
-		for (int index = 0; index < std::numeric_limits<int>::max(); ++index) {
-			auto child = res->read(index);
-			if (child) {
-				int32_t value = write_value(child.get());
-				nodes_.push_back(block::node(value));
-			}
-			else {
-				break;
-			}
-		}
-		// push a empty node
-		nodes_.push_back(block::node(0));
-
-		// write childs nodes
-		for (int index = 0; index < std::numeric_limits<int>::max(); ++index) {
-			auto child = res->read(index);
-			if (child) {
-				nodes_[start + index].child_ = nodes_.size() - start - index;
-				pack_child(child.get());
-			}
-			else {
-				break;
-			}
-		}
-	}
-
-	size_t write_value(res_ptr res)
-	{
-		values_.align();
-
-		size_t pos = values_.get_pos();
-
-		const std::string& name = res->name();
-		int32_t offset = sizeof(int32_t) + name.size() + 1; 
-		values_.write(offset);
-		values_.write(name);
-
-		values_.write(res->as<std::string>());
-
-		return pos;
-	}
-
-private:
-	node_vector nodes_;
-	stream values_;
-	res_ptr res_;
-};
-
 res_ptr res::parse(binary_ptr&& bin)
 {
 	res_parser parser(bin);
 	
 	return parser.parse();
-}
-
-block_ptr res::to_block()
-{
-	block_packer packer(this);
-
-	return packer.pack();
 }

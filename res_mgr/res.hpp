@@ -3,7 +3,6 @@
 #include "res_config.hpp"
 
 #include "binary.hpp"
-#include "block.hpp"
 
 #include <tuple>
 #include <string>
@@ -147,8 +146,6 @@ public:
 
 		return std::move(childs);
 	}
-
-	block_ptr to_block();
 
 	// virtual base implment
 	virtual std::shared_ptr<res> read(const char* name) = 0;
