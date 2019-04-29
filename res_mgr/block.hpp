@@ -128,10 +128,13 @@ public:
 		return root_;
 	}
 
-public:
-	sub_block root_;
+	binary_ptr& get_bin()
+	{
+		return bin_;
+	}
 
 private:
+	sub_block root_;
 	binary_ptr bin_;
 };
 

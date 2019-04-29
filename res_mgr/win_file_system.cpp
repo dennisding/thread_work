@@ -33,3 +33,15 @@ binary_ptr win_file_system::read(const std::string &name)
 {
 	return read_file(name);
 }
+
+void win_file_system::write(const std::string& name, const binary_ptr& bin)
+{
+	FILE* file = nullptr;
+	fopen_s(&file, name.c_str(), "wb");
+	if (!file) {
+		return;
+	}
+
+	fwrite(bin->get_data(), 1, bin->size(), file);
+	fclose(file);
+}

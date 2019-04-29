@@ -178,6 +178,12 @@ public:
 		return name_;
 	}
 
+	// state interface
+	virtual bool sorted()
+	{
+		return true;
+	}
+
 public:
 	static std::shared_ptr<res> parse(binary_ptr&& bin);
 

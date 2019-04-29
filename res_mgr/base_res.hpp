@@ -99,6 +99,11 @@ public:
 		return value_;
 	}
 
+	virtual bool sorted()
+	{
+		return sorted_;
+	}
+
 private:
 	std::string value_;
 	res_vector childs_;
