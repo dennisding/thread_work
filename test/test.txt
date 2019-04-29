@@ -5,3 +5,12 @@ models
 	model
 		name = 'it is a good model!!!'
 		pos = 3.1415 4.11 5.12
+		mesh
+			path = file/path.mesh
+		mesh
+			path = file/path2.mesh
+	
+	item = item_name
+	yard_size = 1024
+
+account = dennis

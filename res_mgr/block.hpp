@@ -22,6 +22,11 @@ public:
 		uint32_t value_;
 	};
 
+	enum node_flag
+	{
+		sorted = 0x0010,
+	};
+
 	struct node
 	{
 		node() = default;
@@ -35,7 +40,7 @@ public:
 			return value_ != 0;
 		}
 
-		int32_t flag_;
+		int32_t flag_; // 0 ~ 7 bits, type index, 8 ~31 bits, control flags
 		int32_t name_;
 		int32_t value_;
 		int32_t child_;
@@ -57,7 +62,6 @@ public:
 
 		inline const char* name(node* node)
 		{
-//			return name_ + node->value_;
 			return name_ + node->name_;
 		}
 
