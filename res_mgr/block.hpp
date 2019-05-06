@@ -24,7 +24,18 @@ public:
 
 	enum node_flag
 	{
-		sorted = 0x0010,
+		size_mask = 0x000F,
+		type_mask = 0x00F0,
+
+		type_bool = 0x0010,
+		type_int = 0x0020,
+		type_float = 0x0030,
+		type_double = 0x0040,
+		type_str = 0x0050,
+		type_block = 0x0060,
+
+		sorted = 0x0100,
+		// type flag
 	};
 
 	struct node

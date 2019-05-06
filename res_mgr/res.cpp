@@ -33,6 +33,7 @@ public:
 
 	parser_info()
 	{
+		memset(char_table_, 0, sizeof(char_table_));
 		init_char_table();
 	}
 
@@ -42,7 +43,6 @@ public:
 private:
 	void init_char_table()
 	{
-		memset(char_table_, 0, sizeof(char_table_));
 		char_table_['\n'] = NEW_LINE;
 		char_table_['\r'] = NEW_LINE;
 		char_table_['{'] = TYPE_START;
@@ -64,7 +64,7 @@ static parser_info g_parser_info;
 
 class res_parser
 {
-	using res_vector = std::vector<std::shared_ptr<base_res>>;
+	using res_vector = std::vector<res_ptr>;
 	
 public:
 	res_parser(const binary_ptr& bin) : bin_(bin), root_(nullptr), index_(0), indent_(0)
@@ -77,7 +77,7 @@ public:
 			return nullptr;
 		}
 
-		auto root = std::make_shared<base_res>("root");
+		auto root = std::make_shared<res>("root");
 		root_ = root;
 		stack_.push_back(std::move(root));
 
@@ -227,7 +227,7 @@ private:
 
 	void feed_one_block()
 	{
-		auto new_block = std::make_shared<base_res>(parse_str());
+		auto new_block = std::make_shared<res>(parse_str());
 
 		// scan_type
 		auto data = bin_->get_data();
@@ -269,7 +269,7 @@ private:
 		stack_.push_back(std::move(new_block));
 	}
 
-	void process_type(base_res_ptr& res, const std::string& type_str)
+	void process_type(res_ptr& res, const std::string& type_str)
 	{
 	}
 
@@ -290,7 +290,7 @@ private:
 			++index_; // eat the [
 			do {
 				std::string value = parse_str(',', ']');
-				block->add_child(std::make_shared<base_res>(value));;
+				block->add_child(std::make_shared<res>(value));;
 
 				token = g_parser_info.char_table_[bin_->get_data()[index_]];
 				++index_; // eat the , or ]

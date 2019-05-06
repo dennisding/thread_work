@@ -63,13 +63,15 @@ class res
 			return ptr->as<type>();
 		}
 	};
+private:
+	using res_vector = std::vector<std::shared_ptr<res>>;
 
 public:
-	inline res(const std::string& name) noexcept: name_(name)
+	inline res(const std::string& name) noexcept: sorted_(false), name_(name)
 	{
 	}
 
-	inline res(std::string&& name) noexcept: name_(std::move(name))
+	inline res(std::string&& name) noexcept: sorted_(false), name_(std::move(name))
 	{
 	}
 
@@ -80,10 +82,20 @@ public:
 		return name_;
 	}
 
+	std::string& value()
+	{
+		return value_;
+	}
+
+	void set_value(std::string && value)
+	{
+		value_.operator=(std::forward<std::string>(value));
+	}
+
 	template <typename type>
 	inline type as()
 	{
-		return res_type<type>::as(this);
+		return res_type_info<type>::convert(value_);
 	}
 
 	template <typename ...types>
@@ -92,6 +104,12 @@ public:
 		using tuple = std::tuple<types...>;
 		using index_type = typename make_index<std::tuple_size<tuple>::value - 1>::type;
 		return call_helper<tuple, index_type>::call(this);
+	}
+
+	template <typename type>
+	inline std::vector<type> as_vector()
+	{
+		using vector = std::vector<type>;
 	}
 
 	template <typename type>
@@ -130,52 +148,77 @@ public:
 	{
 		size_t index = 0;
 		std::vector<std::shared_ptr<res>> childs;
-		for (;;) {
-			auto child = read(index);
 
-			if (!child) {
-				break;
-			}
-
+		for (auto& child : childs_) {
 			if (child->name() == name) {
 				childs.push_back(child);
 			}
-
-			++index;
 		}
 
 		return std::move(childs);
 	}
 
-	// virtual base implment
-	virtual std::shared_ptr<res> read(const char* name) = 0;
-	virtual std::shared_ptr<res> read(size_t index) = 0;
+	void add_child(const std::shared_ptr<res>& child)
+	{
+		childs_.push_back(child);
+	}
+
+	virtual std::shared_ptr<res> read(const char* name)
+	{
+		if (sorted_) {
+			auto lower = std::lower_bound(childs_.begin(), childs_.end(), name,
+				[](const std::shared_ptr<res> & first, const char* name) -> bool {
+					return first->name() < name;
+				});
+			if (lower != childs_.end()) {
+				return *lower;
+			}
+		}
+		else {
+			for (auto& it : childs_) {
+				if (it->name() == name) {
+					return it;
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
+	virtual std::shared_ptr<res> read(size_t index)
+	{
+		if (index >= childs_.size()) {
+			return nullptr;
+		}
+
+		return childs_[index];
+	}
 
 	virtual bool as_bool()
 	{
-		auto value = as_string();
+//		auto value = as_string();
 
-		return !(value == "false" || value == "0" || value.empty());
+		return !(value_ == "false" || value_ == "0" || value_.empty());
 	}
 
 	virtual int as_int()
 	{
-		return std::stoi(as_string());
+		return std::stoi(value_);
 	}
 
 	virtual float as_float()
 	{
-		return std::stof(as_string());
+		return std::stof(value_);
 	}
 
 	virtual double as_double()
 	{
-		return std::stod(as_string());
+		return std::stod(value_);
 	}
 
 	virtual std::string &as_string()
 	{
-		return name_;
+		return value_;
 	}
 
 	// state interface
@@ -184,11 +227,29 @@ public:
 		return true;
 	}
 
+	void set_sorted(bool sorted = true)
+	{
+		sorted_ = sorted;
+	}
+
+	void ready()
+	{
+		if (sorted_) {
+			std::sort(childs_.begin(), childs_.end(),
+				[](std::shared_ptr<res> & first, std::shared_ptr<res> & last) {
+					return first->name() < last->name();
+				});
+		}
+	}
+
 public:
 	static std::shared_ptr<res> parse(binary_ptr&& bin);
 
 private:
+	bool sorted_;
 	std::string name_;
+	std::string value_;
+	res_vector childs_;
 };
 
 using res_ptr = std::shared_ptr<res>;

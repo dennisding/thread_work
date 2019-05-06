@@ -4,47 +4,83 @@
 
 #include <string>
 
-template <>
-struct res_type<bool>
+template <typename type>
+class res_type_imp : public res_type
 {
-	inline static bool as(res* value)
+public:
+	type convert(const std::string& value)
 	{
-		return value->as_bool();
+		return res_type_info<type>::convert(value);
+	}
+
+	type convert(const char* value)
+	{
+		return res_type_info<type>::convert(value);
+	}
+
+	virtual int as_int(const std::string& value)
+	{
+//		return res_type_info<int>::convert(value);
+		return do_convert<type, int>(value);
+	}
+
+	virtual std::string as_string(const std::string& value)
+	{
+//		return res_type_info<std::string>::convert(value);
+		return do_convert<type, std::string>(value);
+	}
+
+	virtual int as_int(const char* value)
+	{
+		//return res_type_info<int>::convert(value);
+		return do_convert<type, int>(value);
+	}
+
+	virtual std::string as_string(const char* value)
+	{
+//		return res_type_info<int>::convert(value);
+		return do_convert<type, std::string>(value);
+	}
+
+	virtual const char* as_cstr(const char* value)
+	{
+		return value;
+	}
+
+private:
+	template <typename type, typename return_type, typename arg_type>
+	return_type do_convert(arg_type &&arg)
+	{
+		return res_type_info<return_type>::convert(std::forward<arg_type>(arg));
+	}
+};
+
+
+// type infos
+template <>
+struct res_type_info<int> : public res_type_imp<int32_t>
+{
+	static int convert(const std::string& value)
+	{
+		return std::stoi(value);
+	}
+
+	static int32_t convert(const char* value)
+	{
+		return *((int32_t*)value);
 	}
 };
 
 template <>
-struct res_type<int>
+struct res_type_info<std::string> : public res_type_imp<std::string>
 {
-	inline static int as(res *value)
+	static const std::string convert(const std::string& value)
 	{
-		return value->as_int();
+		return value;
 	}
-};
 
-template <>
-struct res_type<float>
-{
-	inline static float as(res *value)
+	static const std::string convert(const char* value)
 	{
-		return value->as_float();
-	}
-};
-
-template <>
-struct res_type<double>
-{
-	inline static double as(res* value)
-	{
-		return value->as_double();
-	}
-};
-
-template <>
-struct res_type<std::string>
-{
-	inline static std::string as(res* value)
-	{
-		return value->as_string();
+		return value;
 	}
 };
