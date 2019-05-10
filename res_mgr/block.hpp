@@ -108,6 +108,18 @@ public:
 			return sub_block(child, name_, value_);
 		}
 
+		template <typename type, typename arg_type>
+		type read(arg_type &&arg, const type &default_value = type())
+		{
+			auto child = read(std::forward<arg_type>(arg));
+			if (child.is_valid()) {
+				return child.as<type>();
+			}
+
+			return default_value;
+//			return type();
+		}
+
 		inline bool is_valid()
 		{
 			return nodes_ != nullptr;
@@ -116,6 +128,7 @@ public:
 		template <typename type>
 		type as()
 		{
+			return res_type_info<type>::convert(value());
 		}
 
 	public:
@@ -148,6 +161,7 @@ private:
 	sub_block root_;
 	binary_ptr bin_;
 };
+
 
 using block_ptr = std::shared_ptr<block>;
 

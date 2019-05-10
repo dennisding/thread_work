@@ -129,6 +129,7 @@
     <ClInclude Include="base_res.hpp" />
     <ClInclude Include="binary.hpp" />
     <ClInclude Include="bin_res.hpp" />
+    <ClInclude Include="bit.hpp" />
     <ClInclude Include="block.hpp" />
     <ClInclude Include="data_type_infos.hpp" />
     <ClInclude Include="file_system.hpp" />
@@ -141,6 +142,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="base_res.cpp" />
+    <ClCompile Include="bit.cpp" />
     <ClCompile Include="block.cpp" />
     <ClCompile Include="res.cpp" />
     <ClCompile Include="res_mgr.cpp" />

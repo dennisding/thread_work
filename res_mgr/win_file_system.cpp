@@ -4,10 +4,10 @@
 
 #include <cstdio>
 
-res_ptr win_file_system::load_config(const std::string &name)
-{
-	return res::parse(read_file(name));
-}
+//res_ptr win_file_system::load_config(const std::string &name)
+//{
+//	return res::parse(read_file(name));
+//}
 
 binary_ptr win_file_system::read_file(const std::string& name)
 {
